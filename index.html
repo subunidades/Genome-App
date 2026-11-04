@@ -3,12 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="version" content="0.4.1">
+<meta name="version" content="0.5.0">
 <title>Genome Map × Brain Atlas</title>
 <!--
   Genome Map x Brain Atlas  (single-file app)
-  VERSION 0.4.1 (2026-11-04)  — keep in sync with APP_VERSION in the script below
+  VERSION 0.5.0 (2026-11-04)  — keep in sync with APP_VERSION in the script below
   Changelog
+  0.5.0  Anatomy redraw: temporal pole, sylvian notch, rounded cerebellum, tapered brainstem, extra sulci
   0.4.1  Frontal and temporal labels moved to leader column; cerebellum and brainstem attached to cerebrum; larger labels
   0.4.0  Leader-line labels for deep structures; fixed lobe highlight; SLC17A7 preselected on load; in-file versioning
   0.3.0  Real Allen cortex snRNA-seq cell-type panel (120 clusters -> 17 classes, 20 genes)
@@ -72,7 +73,7 @@ polygon.reg.sel{stroke:none;fill-opacity:.6}
 <div class="ver" id="ver"></div>
 </main>
 <script>
-var APP_VERSION="0.4.1",APP_DATE="2026-11-04";
+var APP_VERSION="0.5.0",APP_DATE="2026-11-04";
 document.getElementById("ver").textContent="Genome Map × Brain Atlas v"+APP_VERSION+" · "+APP_DATE;
 console.info("Genome Map × Brain Atlas v"+APP_VERSION);
 var CH=[["1",248.96],["2",242.19],["3",198.3],["4",190.21],["5",181.54],["6",170.81],["7",159.35],["8",145.14],["9",138.39],["10",133.8],["11",135.09],["12",133.28],["13",114.36],["14",107.04],["15",101.99],["16",90.34],["17",83.26],["18",80.37],["19",58.62],["20",64.44],["21",46.71],["22",50.82],["X",156.04],["Y",57.23]];
@@ -131,7 +132,7 @@ G.forEach(function(g,i){
 });
 // brain
 var bs=document.getElementById("brain"),regs={};
-var SIL="M70 215C60 140 130 60 260 48C380 40 500 80 535 180C548 215 540 245 515 262C490 272 470 270 450 285C440 305 420 320 395 318C360 316 340 296 300 292C250 290 200 290 150 280C95 270 72 250 70 215Z";
+var SIL="M70 220C62 140 135 58 265 46C390 38 505 78 540 170C556 212 548 244 520 258C498 268 478 266 462 276C470 292 472 312 446 328C420 340 380 336 340 322C300 308 250 306 205 298C140 288 76 262 70 220Z";
 var cp=el("clipPath",{id:"sil"},el("defs",{},bs));el("path",{d:SIL},cp);
 var CC={"clip-path":"url(#sil)"};
 function lb(p){var o={points:p};o["clip-path"]="url(#sil)";return["polygon",o]}
@@ -148,8 +149,8 @@ var shapes={
  hyp:["ellipse",{cx:340,cy:256,rx:16,ry:10}],
  hip:["path",{d:"M405 292C360 292 300 282 258 262C230 248 222 225 232 205L246 210C242 228 250 242 270 252C305 268 360 276 400 276Z"}],
  amy:["ellipse",{cx:418,cy:274,rx:18,ry:14}],
- cb:["path",{d:"M95 275C90 330 150 375 230 365C285 358 300 335 292 290C250 288 160 288 95 275Z"}],
- bs:["path",{d:"M295 268C300 330 312 370 318 405L350 405C348 360 340 320 345 268Z"}]
+ cb:["path",{d:"M105 285C78 322 108 376 186 374C262 372 306 346 300 300C262 296 170 296 105 285Z"}],
+ bs:["path",{d:"M298 270C296 300 300 330 308 360C310 380 312 395 312 405L336 405C338 385 340 372 352 356C368 338 364 316 346 300C342 290 344 280 344 270Z"}]
 };
 shapes.nac=["ellipse",{cx:410,cy:242,rx:14,ry:11}];shapes.bf=["ellipse",{cx:372,cy:252,rx:14,ry:9}];
 var ORDER=["cb","bs","fro","par","occ","tem","wm","cau","thal","hip","put","gp","amy","hyp","nac","bf"];
@@ -170,7 +171,7 @@ ORDER.forEach(function(k){
   el("title",{},e).textContent=R[j][1];
   e.onclick=function(){reg=j;draw()};regs[k]=e;
 });
-["M340 52C350 110 365 170 372 232","M450 292C410 262 360 235 300 222C250 215 215 215 205 215","M168 62C185 120 198 170 205 215","M110 305C160 318 230 318 285 310","M105 322C160 338 230 338 280 328","M120 340C170 355 225 355 262 346"].forEach(function(d){el("path",{d:d,fill:"none",stroke:"currentColor","stroke-opacity":.3,"stroke-width":1.2,"pointer-events":"none"},bs)});
+["M340 52C350 110 365 170 372 232","M462 278C420 262 365 236 300 222C250 215 215 215 205 215","M168 62C185 120 198 170 205 215","M110 305C160 318 230 318 285 310","M105 322C160 338 230 338 280 328","M120 340C170 355 225 355 262 346","M430 312C380 304 320 296 250 290","M330 60C300 80 262 92 232 122","M470 96C432 92 400 102 374 124","M182 102C200 132 214 162 228 192"].forEach(function(d){el("path",{d:d,fill:"none",stroke:"currentColor","stroke-opacity":.3,"stroke-width":1.2,"pointer-events":"none"},bs)});
 var lab={par:[245,70],occ:[78,205],wm:[165,160],cb:[130,335],bs:[355,380]};
 [["fro",490,150,65],["cau",330,128,95],["thal",305,205,150],["put",388,205,185],["gp",358,222,215],["nac",410,242,245],["bf",372,252,275],["amy",418,274,305],["hyp",340,256,335],["hip",330,284,365],["tem",400,306,395]].forEach(function(l){
   var nm=R.find(function(r){return r[0]==l[0]})[1];
