@@ -22,7 +22,9 @@ h2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute
 svg{width:100%;height:auto;display:block}
 .reg{stroke:var(--fg);stroke-opacity:.45;stroke-width:1.2;cursor:pointer}
 .reg:hover{stroke-opacity:1}
-.reg.sel{stroke:#f59e0b;stroke-opacity:1;stroke-width:3}
+.reg.sel{stroke:#f59e0b;stroke-opacity:1;stroke-width:3;fill-opacity:.6}
+polygon.reg{stroke:none}
+polygon.reg.sel{stroke:none;fill-opacity:.6}
 .lbl{font-size:11px;fill:var(--mute);pointer-events:none}
 .gl{font-size:10px;fill:var(--fg)}
 .cl{font-size:11px;fill:var(--mute)}
@@ -45,7 +47,7 @@ svg{width:100%;height:auto;display:block}
   <div class="card"><h2 id="gt">Genome map · expression in Cortex</h2><svg id="gm" viewBox="0 0 900 840"></svg></div>
   <div class="side card">
     <h2>Brain region (lateral slice, schematic)</h2>
-    <svg id="brain" viewBox="0 0 600 420"></svg>
+    <svg id="brain" viewBox="0 0 740 420"></svg>
     <div class="legend">low<i></i>high</div>
     <div class="info" id="info">Click a gene on the map.</div>
     <div class="bars" id="bars"></div>
@@ -89,7 +91,7 @@ var G=[
   var gv=gp[g[0]]!==undefined?gp[g[0]]:p[3]*.6;
   g[4]=[L[0],L[1],L[2],L[3],p[1],p[4],p[3],p[3]*.9,gv,p[2],p[5],p[6],p[7],p[8],p[3]*.95,(p[4]+p[5])/2].map(cl)});
 })();
-var NS="http://www.w3.org/2000/svg",reg=0,gsel=-1,dots=[],rings=[];
+var NS="http://www.w3.org/2000/svg",reg=0,gsel=12,dots=[],rings=[];
 function el(t,a,p){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
 var gm=document.getElementById("gm"),X0=40,W=840,RH=34,pos={};
 CH.forEach(function(c,i){
@@ -153,7 +155,12 @@ ORDER.forEach(function(k){
   e.onclick=function(){reg=j;draw()};regs[k]=e;
 });
 ["M340 52C350 110 365 170 372 232","M450 292C410 262 360 235 300 222C250 215 215 215 205 215","M168 62C185 120 198 170 205 215","M110 305C160 318 230 318 285 310","M105 322C160 338 230 338 280 328","M120 340C170 355 225 355 262 346"].forEach(function(d){el("path",{d:d,fill:"none",stroke:"currentColor","stroke-opacity":.3,"stroke-width":1.2,"pointer-events":"none"},bs)});
-var lab={fro:[470,100],par:[245,70],occ:[78,205],tem:[330,310],wm:[165,160],cau:[300,126],thal:[268,212],put:[410,200],gp:[318,252],hyp:[322,268],nac:[428,246],bf:[372,272],hip:[300,288],amy:[395,308],cb:[130,335],bs:[355,380]};
+var lab={fro:[470,100],par:[245,70],occ:[78,205],tem:[250,310],wm:[165,160],cb:[130,335],bs:[355,380]};
+[["cau",330,128,95],["thal",305,205,150],["put",388,205,185],["gp",358,222,215],["nac",410,242,245],["bf",372,252,275],["amy",418,274,305],["hyp",340,256,335],["hip",330,284,365]].forEach(function(l){
+  var nm=R.find(function(r){return r[0]==l[0]})[1];
+  el("line",{x1:l[1],y1:l[2],x2:580,y2:l[3],stroke:"currentColor","stroke-opacity":.25,"stroke-width":1,"pointer-events":"none"},bs);
+  el("circle",{cx:l[1],cy:l[2],r:2,fill:"currentColor","fill-opacity":.6,"pointer-events":"none"},bs);
+  el("text",{x:586,y:l[3]+4,class:"lbl"},bs).textContent=nm});
 for(var k in lab)el("text",{x:lab[k][0],y:lab[k][1],class:"lbl"},bs).textContent=R.find(function(r){return r[0]==k})[1];
 function draw(){
   document.getElementById("gt").textContent="Genome map · expression in "+R[reg][1];
