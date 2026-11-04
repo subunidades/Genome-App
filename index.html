@@ -3,7 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="version" content="0.4.1">
 <title>Genome Map × Brain Atlas</title>
+<!--
+  Genome Map x Brain Atlas  (single-file app)
+  VERSION 0.4.1 (2026-11-04)  — keep in sync with APP_VERSION in the script below
+  Changelog
+  0.4.1  Frontal and temporal labels moved to leader column; cerebellum and brainstem attached to cerebrum; larger labels
+  0.4.0  Leader-line labels for deep structures; fixed lobe highlight; SLC17A7 preselected on load; in-file versioning
+  0.3.0  Real Allen cortex snRNA-seq cell-type panel (120 clusters -> 17 classes, 20 genes)
+  0.2.0  Anatomy rework: cortical lobes, caudate, putamen, globus pallidus, nucleus accumbens, basal forebrain
+  0.1.0  Genome map of 20 genes + schematic brain, illustrative expression values
+-->
 <style>
 :root{--bg:#fafaf7;--fg:#1d1d1b;--mute:#6b6b66;--card:#fff;--line:#d9d8d2;--acc:#6d28d9;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15151a;--fg:#ececf0;--mute:#9a9aa6;--card:#1d1d24;--line:#32323d;--acc:#a78bfa}}
@@ -25,7 +36,7 @@ svg{width:100%;height:auto;display:block}
 .reg.sel{stroke:#f59e0b;stroke-opacity:1;stroke-width:3;fill-opacity:.6}
 polygon.reg{stroke:none}
 polygon.reg.sel{stroke:none;fill-opacity:.6}
-.lbl{font-size:11px;fill:var(--mute);pointer-events:none}
+.lbl{font-size:13px;fill:var(--mute);pointer-events:none}
 .gl{font-size:10px;fill:var(--fg)}
 .cl{font-size:11px;fill:var(--mute)}
 .gene{cursor:pointer}
@@ -34,6 +45,7 @@ polygon.reg.sel{stroke:none;fill-opacity:.6}
 .bars .b{flex:1;height:8px;background:var(--line);border-radius:4px;overflow:hidden}
 .bars i{display:block;height:100%;background:var(--acc)}
 .info{font-size:13px;margin:10px 0 6px;min-height:40px}
+.ver{font-size:11px;color:var(--mute);margin-top:8px}
 .legend{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--mute);margin-top:6px}
 .legend i{flex:1;height:8px;border-radius:4px;background:linear-gradient(90deg,transparent,var(--acc));border:1px solid var(--line)}
 .warn{font-size:12px;color:var(--mute);margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
@@ -57,8 +69,12 @@ polygon.reg.sel{stroke:none;fill-opacity:.6}
   </div>
 </div>
 <p class="warn">The brain-slice and genome-map dot values are illustrative: they are hand-curated approximations of well-known patterns, not measurements from the Allen Human Brain Atlas, and the anatomy is a simplified composite lateral slice with deep structures projected onto it. Chromosome sizes (GRCh38) and gene positions are approximate. The cortical cell-type bars are real: Allen human cortex single-nucleus data (trimmed means per cell-type cluster, 120 clusters averaged into 17 classes). For regional data, download the atlas from human.brain-map.org.</p>
+<div class="ver" id="ver"></div>
 </main>
 <script>
+var APP_VERSION="0.4.1",APP_DATE="2026-11-04";
+document.getElementById("ver").textContent="Genome Map × Brain Atlas v"+APP_VERSION+" · "+APP_DATE;
+console.info("Genome Map × Brain Atlas v"+APP_VERSION);
 var CH=[["1",248.96],["2",242.19],["3",198.3],["4",190.21],["5",181.54],["6",170.81],["7",159.35],["8",145.14],["9",138.39],["10",133.8],["11",135.09],["12",133.28],["13",114.36],["14",107.04],["15",101.99],["16",90.34],["17",83.26],["18",80.37],["19",58.62],["20",64.44],["21",46.71],["22",50.82],["X",156.04],["Y",57.23]];
 var R=[["fro","Frontal cortex"],["par","Parietal cortex"],["tem","Temporal cortex"],["occ","Occipital cortex"],["hip","Hippocampus"],["amy","Amygdala"],["cau","Caudate"],["put","Putamen"],["gp","Globus pallidus"],["thal","Thalamus"],["hyp","Hypothalamus"],["cb","Cerebellum"],["bs","Brainstem"],["wm","White matter"],["nac","Nucleus accumbens"],["bf","Basal forebrain"]];
 var G=[
@@ -132,8 +148,8 @@ var shapes={
  hyp:["ellipse",{cx:340,cy:256,rx:16,ry:10}],
  hip:["path",{d:"M405 292C360 292 300 282 258 262C230 248 222 225 232 205L246 210C242 228 250 242 270 252C305 268 360 276 400 276Z"}],
  amy:["ellipse",{cx:418,cy:274,rx:18,ry:14}],
- cb:["path",{d:"M95 285C90 330 150 375 230 365C285 358 300 335 290 305C250 300 160 300 95 285Z"}],
- bs:["path",{d:"M295 290C300 330 312 370 318 405L350 405C348 360 340 320 345 290Z"}]
+ cb:["path",{d:"M95 275C90 330 150 375 230 365C285 358 300 335 292 290C250 288 160 288 95 275Z"}],
+ bs:["path",{d:"M295 268C300 330 312 370 318 405L350 405C348 360 340 320 345 268Z"}]
 };
 shapes.nac=["ellipse",{cx:410,cy:242,rx:14,ry:11}];shapes.bf=["ellipse",{cx:372,cy:252,rx:14,ry:9}];
 var ORDER=["cb","bs","fro","par","occ","tem","wm","cau","thal","hip","put","gp","amy","hyp","nac","bf"];
@@ -155,8 +171,8 @@ ORDER.forEach(function(k){
   e.onclick=function(){reg=j;draw()};regs[k]=e;
 });
 ["M340 52C350 110 365 170 372 232","M450 292C410 262 360 235 300 222C250 215 215 215 205 215","M168 62C185 120 198 170 205 215","M110 305C160 318 230 318 285 310","M105 322C160 338 230 338 280 328","M120 340C170 355 225 355 262 346"].forEach(function(d){el("path",{d:d,fill:"none",stroke:"currentColor","stroke-opacity":.3,"stroke-width":1.2,"pointer-events":"none"},bs)});
-var lab={fro:[470,100],par:[245,70],occ:[78,205],tem:[250,310],wm:[165,160],cb:[130,335],bs:[355,380]};
-[["cau",330,128,95],["thal",305,205,150],["put",388,205,185],["gp",358,222,215],["nac",410,242,245],["bf",372,252,275],["amy",418,274,305],["hyp",340,256,335],["hip",330,284,365]].forEach(function(l){
+var lab={par:[245,70],occ:[78,205],wm:[165,160],cb:[130,335],bs:[355,380]};
+[["fro",490,150,65],["cau",330,128,95],["thal",305,205,150],["put",388,205,185],["gp",358,222,215],["nac",410,242,245],["bf",372,252,275],["amy",418,274,305],["hyp",340,256,335],["hip",330,284,365],["tem",400,306,395]].forEach(function(l){
   var nm=R.find(function(r){return r[0]==l[0]})[1];
   el("line",{x1:l[1],y1:l[2],x2:580,y2:l[3],stroke:"currentColor","stroke-opacity":.25,"stroke-width":1,"pointer-events":"none"},bs);
   el("circle",{cx:l[1],cy:l[2],r:2,fill:"currentColor","fill-opacity":.6,"pointer-events":"none"},bs);
