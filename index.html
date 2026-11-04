@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Genome Map × Brain Atlas</title>
+<style>
+:root{--bg:#fafaf7;--fg:#1d1d1b;--mute:#6b6b66;--card:#fff;--line:#d9d8d2;--acc:#6d28d9;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15151a;--fg:#ececf0;--mute:#9a9aa6;--card:#1d1d24;--line:#32323d;--acc:#a78bfa}}
+:root[data-theme="dark"]{--bg:#15151a;--fg:#ececf0;--mute:#9a9aa6;--card:#1d1d24;--line:#32323d;--acc:#a78bfa}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1200px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:22px;margin:0 0 4px}
+.sub{color:var(--mute);margin:0 0 16px;font-size:13px}
+.grid{display:grid;grid-template-columns:1.7fr 1fr;gap:14px;align-items:start}
+.side{position:sticky;top:12px}
+@media(max-width:820px){.grid{grid-template-columns:1fr}.side{position:static;order:-1}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+h2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);margin:0 0 8px}
+svg{width:100%;height:auto;display:block}
+.reg{stroke:var(--fg);stroke-opacity:.45;stroke-width:1.2;cursor:pointer}
+.reg:hover{stroke-opacity:1}
+.reg.sel{stroke:#f59e0b;stroke-opacity:1;stroke-width:3}
+.lbl{font-size:11px;fill:var(--mute);pointer-events:none}
+.gl{font-size:10px;fill:var(--fg)}
+.cl{font-size:11px;fill:var(--mute)}
+.gene{cursor:pointer}
+.bars div{display:flex;align-items:center;gap:8px;font-size:12px;margin:3px 0}
+.bars .n{width:92px;color:var(--mute)}
+.bars .b{flex:1;height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.bars i{display:block;height:100%;background:var(--acc)}
+.info{font-size:13px;margin:10px 0 6px;min-height:40px}
+.legend{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--mute);margin-top:6px}
+.legend i{flex:1;height:8px;border-radius:4px;background:linear-gradient(90deg,transparent,var(--acc));border:1px solid var(--line)}
+.warn{font-size:12px;color:var(--mute);margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+</style>
+</head>
+<body>
+<main>
+<h1>Genome Map × Brain Atlas</h1>
+<p class="sub">Pick a brain region on the right: every gene on the genome map lights up by how strongly it’s expressed there. Click a gene for its full brain profile.</p>
+<div class="grid">
+  <div class="card"><h2 id="gt">Genome map · expression in Cortex</h2><svg id="gm" viewBox="0 0 900 840"></svg></div>
+  <div class="side card">
+    <h2>Brain region (lateral slice, schematic)</h2>
+    <svg id="brain" viewBox="0 0 600 420"></svg>
+    <div class="legend">low<i></i>high</div>
+    <div class="info" id="info">Click a gene on the map.</div>
+    <div class="bars" id="bars"></div>
+    <h2 style="margin-top:16px">Cortical cell types · real Allen data</h2>
+    <div class="info" id="cinfo" style="min-height:0"></div>
+    <div class="bars" id="cells"></div>
+  </div>
+</div>
+<p class="warn">The brain-slice and genome-map dot values are illustrative: they are hand-curated approximations of well-known patterns, not measurements from the Allen Human Brain Atlas, and the anatomy is a simplified composite lateral slice with deep structures projected onto it. Chromosome sizes (GRCh38) and gene positions are approximate. The cortical cell-type bars are real: Allen human cortex single-nucleus data (trimmed means per cell-type cluster, 120 clusters averaged into 17 classes). For regional data, download the atlas from human.brain-map.org.</p>
+</main>
+<script>
+var CH=[["1",248.96],["2",242.19],["3",198.3],["4",190.21],["5",181.54],["6",170.81],["7",159.35],["8",145.14],["9",138.39],["10",133.8],["11",135.09],["12",133.28],["13",114.36],["14",107.04],["15",101.99],["16",90.34],["17",83.26],["18",80.37],["19",58.62],["20",64.44],["21",46.71],["22",50.82],["X",156.04],["Y",57.23]];
+var R=[["fro","Frontal cortex"],["par","Parietal cortex"],["tem","Temporal cortex"],["occ","Occipital cortex"],["hip","Hippocampus"],["amy","Amygdala"],["cau","Caudate"],["put","Putamen"],["gp","Globus pallidus"],["thal","Thalamus"],["hyp","Hypothalamus"],["cb","Cerebellum"],["bs","Brainstem"],["wm","White matter"],["nac","Nucleus accumbens"],["bf","Basal forebrain"]];
+var G=[
+["BDNF","Brain-derived neurotrophic factor","11",27.7,[.7,.9,.3,.3,.6,.5,.3,.2,.05]],
+["SLC6A4","Serotonin transporter","17",30.2,[.15,.1,.2,.15,.2,.35,.05,.95,.02]],
+["DRD2","Dopamine receptor D2","11",113.4,[.15,.1,.1,.95,.2,.15,.02,.35,.02]],
+["GAD1","GABA synthesis enzyme","2",170.8,[.7,.6,.4,.7,.6,.5,.45,.35,.03]],
+["SNAP25","Synaptic vesicle protein","20",10.2,[.9,.85,.7,.7,.75,.7,.5,.6,.05]],
+["MBP","Myelin basic protein","18",76.9,[.15,.1,.4,.2,.15,.3,.35,.5,1]],
+["GFAP","Astrocyte marker","17",44.9,[.25,.3,.35,.2,.25,.3,.3,.55,.9]],
+["APOE","Apolipoprotein E","19",44.9,[.35,.4,.4,.35,.4,.4,.35,.45,.5]],
+["FOXP2","Speech and language","7",114.1,[.45,.4,.7,.8,.3,.3,.6,.15,.02]],
+["MAPT","Tau protein","17",45.9,[.8,.75,.5,.5,.6,.5,.4,.55,.1]],
+["SST","Somatostatin","3",187.4,[.6,.6,.35,.6,.65,.7,.1,.2,.02]],
+["PVALB","Parvalbumin","22",37.2,[.6,.5,.7,.35,.3,.3,.9,.4,.02]],
+["SLC17A7","VGLUT1, excitatory neurons","19",49.4,[.95,.9,.6,.15,.5,.4,.3,.2,.02]],
+["HTT","Huntingtin","4",3.1,[.55,.5,.5,.6,.5,.5,.5,.5,.2]],
+["COMT","Catechol-O-methyltransferase","22",19.9,[.5,.45,.4,.45,.4,.4,.35,.35,.15]],
+["OXTR","Oxytocin receptor","3",8.7,[.15,.35,.1,.15,.5,.8,.05,.1,.02]],
+["TH","Tyrosine hydroxylase","11",2.2,[.05,.05,.15,.8,.1,.35,.02,.85,.01]],
+["CALB1","Calbindin","8",90.1,[.6,.5,.3,.3,.4,.45,.7,.3,.02]],
+["RELN","Reelin","7",103.5,[.6,.6,.3,.3,.4,.3,.5,.2,.02]],
+["SCN1A","Sodium channel Nav1.1","2",166,[.7,.6,.5,.5,.5,.4,.6,.5,.05]]
+];
+(function(){
+ var gp={GAD1:.85,PVALB:.6,SNAP25:.7,MBP:.5,GFAP:.3,SLC17A7:.05};
+ var lobe={FOXP2:[.5,.4,.45,.35],MAPT:[.8,.75,.8,.7],PVALB:[.55,.6,.55,.75],SLC17A7:[.95,.95,.95,.95]};
+ var cl=function(x){return Math.max(0,Math.min(1,x))};
+ G.forEach(function(g){var p=g[4],c=p[0],L=lobe[g[0]]||[c*1.05,c*.95,c,c*.85];
+  var gv=gp[g[0]]!==undefined?gp[g[0]]:p[3]*.6;
+  g[4]=[L[0],L[1],L[2],L[3],p[1],p[4],p[3],p[3]*.9,gv,p[2],p[5],p[6],p[7],p[8],p[3]*.95,(p[4]+p[5])/2].map(cl)});
+})();
+var NS="http://www.w3.org/2000/svg",reg=0,gsel=-1,dots=[],rings=[];
+function el(t,a,p){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+var gm=document.getElementById("gm"),X0=40,W=840,RH=34,pos={};
+CH.forEach(function(c,i){
+  var y=14+i*RH,w=c[1]/249*W;
+  pos[c[0]]={y:y,w:w,len:c[1]};
+  el("text",{x:X0-8,y:y+22,"text-anchor":"end",class:"cl"},gm).textContent=c[0];
+  el("rect",{x:X0,y:y+14,width:w,height:10,rx:5,fill:"none",stroke:"currentColor","stroke-opacity":.35},gm);
+});
+var byChr={};
+G.forEach(function(g,i){(byChr[g[2]]=byChr[g[2]]||[]).push(i)});
+G.forEach(function(g,i){
+  var p=pos[g[2]],x=X0+g[3]/p.len*p.w,list=byChr[g[2]].slice().sort(function(a,b){return G[a][3]-G[b][3]});
+  var up=list.indexOf(i)%2==0,gr=el("g",{class:"gene"},gm);
+  el("circle",{cx:x,cy:p.y+19,r:12,fill:"transparent"},gr);
+  rings[i]=el("circle",{cx:x,cy:p.y+19,r:9,fill:"none",stroke:"#f59e0b","stroke-width":2.5,opacity:0},gr);
+  dots[i]=el("circle",{cx:x,cy:p.y+19,r:6,fill:"#6d28d9",stroke:"#6d28d9"},gr);
+  var anchor=x>X0+W-60?"end":"start";
+  el("text",{x:x+(anchor=="end"?-4:4),y:up?p.y+9:p.y+34,"text-anchor":anchor,class:"gl"},gr).textContent=g[0];
+  el("title",{},gr).textContent=g[0]+" · "+g[1];
+  gr.onclick=function(){gsel=i;draw()};
+});
+// brain
+var bs=document.getElementById("brain"),regs={};
+var SIL="M70 215C60 140 130 60 260 48C380 40 500 80 535 180C548 215 540 245 515 262C490 272 470 270 450 285C440 305 420 320 395 318C360 316 340 296 300 292C250 290 200 290 150 280C95 270 72 250 70 215Z";
+var cp=el("clipPath",{id:"sil"},el("defs",{},bs));el("path",{d:SIL},cp);
+var CC={"clip-path":"url(#sil)"};
+function lb(p){var o={points:p};o["clip-path"]="url(#sil)";return["polygon",o]}
+var shapes={
+ fro:lb("340,0 600,0 600,330 450,300 372,232"),
+ par:lb("340,0 372,232 300,222 205,215 165,0"),
+ occ:lb("0,0 165,0 205,215 215,300 0,300"),
+ tem:lb("372,232 470,290 470,345 200,345 205,215 300,222"),
+ wm:["path",{d:"M120 215C115 150 170 100 270 92C360 86 440 120 470 190C478 215 470 235 440 245L380 235L300 225L205 218Z"}],
+ cau:["path",{d:"M440 150C420 125 350 115 300 130C265 142 245 175 245 220L258 220C260 185 275 158 305 146C350 132 405 140 420 165C425 180 440 175 440 150Z"}],
+ thal:["ellipse",{cx:305,cy:205,rx:36,ry:24}],
+ put:["ellipse",{cx:388,cy:205,rx:19,ry:30}],
+ gp:["ellipse",{cx:358,cy:222,rx:10,ry:15}],
+ hyp:["ellipse",{cx:340,cy:256,rx:16,ry:10}],
+ hip:["path",{d:"M405 292C360 292 300 282 258 262C230 248 222 225 232 205L246 210C242 228 250 242 270 252C305 268 360 276 400 276Z"}],
+ amy:["ellipse",{cx:418,cy:274,rx:18,ry:14}],
+ cb:["path",{d:"M95 285C90 330 150 375 230 365C285 358 300 335 290 305C250 300 160 300 95 285Z"}],
+ bs:["path",{d:"M295 290C300 330 312 370 318 405L350 405C348 360 340 320 345 290Z"}]
+};
+shapes.nac=["ellipse",{cx:410,cy:242,rx:14,ry:11}];shapes.bf=["ellipse",{cx:372,cy:252,rx:14,ry:9}];
+var ORDER=["cb","bs","fro","par","occ","tem","wm","cau","thal","hip","put","gp","amy","hyp","nac","bf"];
+var shapes9={
+ ctx:["path",{d:"M90 220C70 120 170 50 300 48C430 46 530 110 520 210C515 260 470 285 430 280L170 285C120 285 95 260 90 220Z"}],
+ wm:["ellipse",{cx:300,cy:150,rx:150,ry:13}],
+ thal:["ellipse",{cx:300,cy:200,rx:40,ry:28}],
+ str:["ellipse",{cx:372,cy:190,rx:32,ry:24}],
+ hyp:["ellipse",{cx:322,cy:245,rx:22,ry:14}],
+ amy:["circle",{cx:402,cy:256,r:16}],
+ hip:["ellipse",{cx:240,cy:250,rx:48,ry:12,transform:"rotate(-18 240 250)"}],
+ bs:["path",{d:"M285 262C285 300 290 350 288 385L318 385C318 350 322 300 330 262Z"}],
+ cb:["ellipse",{cx:205,cy:330,rx:78,ry:40}]
+};
+ORDER.forEach(function(k){
+  var s=shapes[k],e=el(s[0],s[1],bs),j=R.findIndex(function(r){return r[0]==k});
+  e.setAttribute("class","reg");e.setAttribute("fill","#6d28d9");e.setAttribute("fill-opacity",.12);
+  el("title",{},e).textContent=R[j][1];
+  e.onclick=function(){reg=j;draw()};regs[k]=e;
+});
+["M340 52C350 110 365 170 372 232","M450 292C410 262 360 235 300 222C250 215 215 215 205 215","M168 62C185 120 198 170 205 215","M110 305C160 318 230 318 285 310","M105 322C160 338 230 338 280 328","M120 340C170 355 225 355 262 346"].forEach(function(d){el("path",{d:d,fill:"none",stroke:"currentColor","stroke-opacity":.3,"stroke-width":1.2,"pointer-events":"none"},bs)});
+var lab={fro:[470,100],par:[245,70],occ:[78,205],tem:[330,310],wm:[165,160],cau:[300,126],thal:[268,212],put:[410,200],gp:[318,252],hyp:[322,268],nac:[428,246],bf:[372,272],hip:[300,288],amy:[395,308],cb:[130,335],bs:[355,380]};
+for(var k in lab)el("text",{x:lab[k][0],y:lab[k][1],class:"lbl"},bs).textContent=R.find(function(r){return r[0]==k})[1];
+function draw(){
+  document.getElementById("gt").textContent="Genome map · expression in "+R[reg][1];
+  R.forEach(function(r,j){regs[r[0]].setAttribute("class","reg"+(j==reg?" sel":""))});
+  G.forEach(function(g,i){
+    var v=g[4][reg];
+    dots[i].setAttribute("fill-opacity",(.1+.9*v).toFixed(2));
+    dots[i].setAttribute("r",(3.5+4.5*v).toFixed(1));
+    rings[i].setAttribute("opacity",i==gsel?1:0);
+  });
+  var info=document.getElementById("info"),bars=document.getElementById("bars");
+  bars.innerHTML="";
+  if(gsel<0){info.textContent="Click a gene on the map.";return}
+  var g=G[gsel];
+  info.innerHTML="<b>"+g[0]+"</b> · "+g[1]+"<br><span style='color:var(--mute)'>Chromosome "+g[2]+", ~"+g[3].toFixed(1)+" Mb</span>";
+  R.map(function(r,j){return [r[1],g[4][j]]}).sort(function(a,b){return b[1]-a[1]}).forEach(function(r){
+    var d=document.createElement("div");d.innerHTML="<span class='n'>"+r[0]+"</span><span class='b'><i style='width:"+Math.round(r[1]*100)+"%'></i></span>";bars.appendChild(d)});
+}
+var CT={"c":["Exc RORB","Exc THEMIS","Exc FEZF2","Exc LINC00507","Inh PVALB","Inh SST","Inh VIP","Inh LAMP5","Inh PAX6/ADARB2","Inh other","Astrocyte","Oligodendrocyte","OPC","Microglia","Endothelial","VLMC","Pericyte"],"g":{"APOE":[0.0,0.0,0.01,0.0,0.0,0.0,0.0,0.0,0.0,0.0,3.86,0.0,0.0,0.5,0.0,0.0,0.0],"BDNF":[0.31,1.11,0.13,0.85,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"CALB1":[0.56,0.1,0.07,1.48,1.24,0.12,0.08,0.89,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"COMT":[0.74,1.06,1.57,1.05,0.36,0.84,1.05,1.11,1.74,0.18,0.31,0.43,0.12,0.0,0.0,0.24,0.21],"DRD2":[0.0,0.01,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"FOXP2":[6.65,3.05,6.77,0.17,0.16,0.25,0.15,0.15,0.12,0.26,0.19,0.15,0.11,7.92,0.2,6.87,0.58],"GAD1":[0.0,0.0,0.0,0.0,9.28,9.09,9.09,9.45,8.8,9.91,0.0,0.0,3.28,0.0,0.0,0.0,0.0],"GFAP":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,7.65,0.0,0.0,0.0,0.0,0.0,0.0],"HTT":[5.6,5.83,5.95,6.24,4.86,4.33,3.48,4.45,4.74,5.46,1.29,0.68,0.75,0.33,0.27,0.98,0.15],"MAPT":[7.5,7.54,7.39,7.55,7.24,7.38,7.5,7.28,7.5,7.43,7.18,7.19,5.7,0.01,0.01,0.27,0.28],"MBP":[3.11,1.06,2.14,2.14,2.49,1.11,1.17,3.61,0.81,2.4,0.07,11.84,2.8,1.54,0.0,0.0,0.3],"OXTR":[0.78,1.24,1.47,1.47,0.01,0.3,0.0,0.0,0.18,0.02,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"PVALB":[0.0,0.13,0.0,0.0,4.85,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"RELN":[0.89,0.37,0.66,0.38,1.02,3.04,3.41,5.49,8.28,0.38,0.62,0.55,0.44,0.49,0.47,0.89,0.47],"SCN1A":[7.89,7.42,5.94,7.47,8.65,7.68,6.98,8.65,7.45,8.17,0.0,0.0,8.59,0.0,0.0,0.0,0.0],"SLC17A7":[7.32,7.37,7.27,6.75,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"SLC6A4":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"SNAP25":[10.62,10.92,10.56,10.42,9.52,9.98,9.08,9.87,8.94,9.4,0.11,0.73,3.64,0.04,0.03,0.09,0.17],"SST":[0.0,0.0,0.0,0.0,0.72,8.46,0.0,1.65,0.7,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"TH":[0.0,0.01,0.0,0.0,0.0,0.36,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]}};
+function cellsDraw(){
+  var box=document.getElementById("cells"),ci=document.getElementById("cinfo");box.innerHTML="";
+  if(gsel<0){ci.textContent="Click a gene to see which cortical cell types express it.";return}
+  var v=CT.g[G[gsel][0]],mx=Math.max.apply(null,v);
+  ci.textContent=mx<0.5?G[gsel][0]+" is essentially undetected in human cortex (it is expressed mainly in other brain regions).":"Trimmed-mean expression, relative to the strongest cell type.";
+  CT.c.map(function(n,i){return [n,v[i]]}).sort(function(a,b){return b[1]-a[1]}).forEach(function(r){
+    var d=document.createElement("div");d.innerHTML="<span class='n'>"+r[0]+"</span><span class='b'><i style='width:"+(mx>0?Math.round(r[1]/mx*100):0)+"%'></i></span>";box.appendChild(d)});
+}
+var _d=draw;draw=function(){_d();cellsDraw()};
+draw();
+</script>
+</body>
+</html>
