@@ -3,12 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="version" content="0.5.1">
+<meta name="version" content="0.5.3">
 <title>Genome Map × Brain Atlas</title>
 <!--
   Genome Map x Brain Atlas  (single-file app)
-  VERSION 0.5.1 (2026-11-04)  — keep in sync with APP_VERSION in the script below
+  VERSION 0.5.3 (2026-11-04)  — keep in sync with APP_VERSION in the script below
   Changelog
+  0.5.3  Leader lines reordered so none cross; cerebellum and brainstem now tuck cleanly under an opaque cerebrum
+  0.5.2  Region names no longer wrap in the profile bars; shorter brain heading; parietal label moved clear of the sulci
   0.5.1  Brain diagram flipped so the front of the brain is at the left; label column moved to the left
   0.5.0  Anatomy redraw: temporal pole, sylvian notch, rounded cerebellum, tapered brainstem, extra sulci
   0.4.1  Frontal and temporal labels moved to leader column; cerebellum and brainstem attached to cerebrum; larger labels
@@ -43,7 +45,7 @@ polygon.reg.sel{stroke:none;fill-opacity:.6}
 .cl{font-size:11px;fill:var(--mute)}
 .gene{cursor:pointer}
 .bars div{display:flex;align-items:center;gap:8px;font-size:12px;margin:3px 0}
-.bars .n{width:92px;color:var(--mute)}
+.bars .n{width:118px;color:var(--mute)}
 .bars .b{flex:1;height:8px;background:var(--line);border-radius:4px;overflow:hidden}
 .bars i{display:block;height:100%;background:var(--acc)}
 .info{font-size:13px;margin:10px 0 6px;min-height:40px}
@@ -60,7 +62,7 @@ polygon.reg.sel{stroke:none;fill-opacity:.6}
 <div class="grid">
   <div class="card"><h2 id="gt">Genome map · expression in Cortex</h2><svg id="gm" viewBox="0 0 900 840"></svg></div>
   <div class="side card">
-    <h2>Brain region (lateral slice, front at left, schematic)</h2>
+    <h2>Brain region · schematic, front at left</h2>
     <svg id="brain" viewBox="0 0 740 420"></svg>
     <div class="legend">low<i></i>high</div>
     <div class="info" id="info">Click a gene on the map.</div>
@@ -74,7 +76,7 @@ polygon.reg.sel{stroke:none;fill-opacity:.6}
 <div class="ver" id="ver"></div>
 </main>
 <script>
-var APP_VERSION="0.5.1",APP_DATE="2026-11-04";
+var APP_VERSION="0.5.3",APP_DATE="2026-11-04";
 document.getElementById("ver").textContent="Genome Map × Brain Atlas v"+APP_VERSION+" · "+APP_DATE;
 console.info("Genome Map × Brain Atlas v"+APP_VERSION);
 var CH=[["1",248.96],["2",242.19],["3",198.3],["4",190.21],["5",181.54],["6",170.81],["7",159.35],["8",145.14],["9",138.39],["10",133.8],["11",135.09],["12",133.28],["13",114.36],["14",107.04],["15",101.99],["16",90.34],["17",83.26],["18",80.37],["19",58.62],["20",64.44],["21",46.71],["22",50.82],["X",156.04],["Y",57.23]];
@@ -150,7 +152,7 @@ var shapes={
  hyp:["ellipse",{cx:340,cy:256,rx:16,ry:10}],
  hip:["path",{d:"M405 292C360 292 300 282 258 262C230 248 222 225 232 205L246 210C242 228 250 242 270 252C305 268 360 276 400 276Z"}],
  amy:["ellipse",{cx:418,cy:274,rx:18,ry:14}],
- cb:["path",{d:"M105 285C78 322 108 376 186 374C262 372 306 346 300 300C262 296 170 296 105 285Z"}],
+ cb:["path",{d:"M105 272C78 312 108 376 186 374C262 372 306 346 300 290C262 284 170 282 105 272Z"}],
  bs:["path",{d:"M298 270C296 300 300 330 308 360C310 380 312 395 312 405L336 405C338 385 340 372 352 356C368 338 364 316 346 300C342 290 344 280 344 270Z"}]
 };
 shapes.nac=["ellipse",{cx:410,cy:242,rx:14,ry:11}];shapes.bf=["ellipse",{cx:372,cy:252,rx:14,ry:9}];
@@ -172,10 +174,11 @@ ORDER.forEach(function(k){
   e.setAttribute("class","reg");e.setAttribute("fill","#6d28d9");e.setAttribute("fill-opacity",.12);
   el("title",{},e).textContent=R[j][1];
   e.onclick=function(){reg=j;draw()};regs[k]=e;
+  if(k=="bs")el("path",{d:SIL,style:"fill:var(--card);stroke:none","pointer-events":"none"},BG);
 });
 ["M340 52C350 110 365 170 372 232","M462 278C420 262 365 236 300 222C250 215 215 215 205 215","M168 62C185 120 198 170 205 215","M110 305C160 318 230 318 285 310","M105 322C160 338 230 338 280 328","M120 340C170 355 225 355 262 346","M430 312C380 304 320 296 250 290","M330 60C300 80 262 92 232 122","M470 96C432 92 400 102 374 124","M182 102C200 132 214 162 228 192"].forEach(function(d){el("path",{d:d,fill:"none",stroke:"currentColor","stroke-opacity":.3,"stroke-width":1.2,"pointer-events":"none"},BG)});
-var lab={par:[440,70],occ:[602,205],wm:[525,160],cb:[565,335],bs:[344,380]};
-[["fro",240,150,65],["cau",400,128,95],["thal",425,205,150],["put",342,205,185],["gp",372,222,215],["nac",320,242,245],["bf",358,252,275],["amy",312,274,305],["hyp",390,256,335],["hip",400,284,365],["tem",330,306,395]].forEach(function(l){
+var lab={par:[440,34],occ:[602,205],wm:[525,160],cb:[565,335],bs:[344,380]};
+[["cau",400,128,65],["thal",425,205,98],["fro",240,150,131],["put",342,205,164],["gp",372,222,197],["nac",320,242,230],["bf",358,252,263],["amy",312,274,296],["hyp",390,256,329],["tem",330,306,362],["hip",400,284,395]].forEach(function(l){
   var nm=R.find(function(r){return r[0]==l[0]})[1];
   el("line",{x1:l[1],y1:l[2],x2:178,y2:l[3],stroke:"currentColor","stroke-opacity":.25,"stroke-width":1,"pointer-events":"none"},bs);
   el("circle",{cx:l[1],cy:l[2],r:2,fill:"currentColor","fill-opacity":.6,"pointer-events":"none"},bs);
