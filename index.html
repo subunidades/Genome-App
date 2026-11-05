@@ -3,12 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="version" content="0.7.0">
+<meta name="version" content="0.8.0">
 <title>Genome Map × Brain Atlas</title>
 <!--
   Genome Map x Brain Atlas  (single-file app)
-  VERSION 0.7.0 (2026-11-04)  — keep in sync with APP_VERSION in the script below
+  VERSION 0.8.0 (2026-11-05)  — keep in sync with APP_VERSION in the script below
   Changelog
+  0.8.0  32 disease genes added (Alzheimer's, Parkinson's, schizophrenia) with real Allen regional and cortex cell-type data; filter chips; colour by disease; collision-aware gene labels; positions of added genes approximate
   0.7.0  All 16 regions now use real Allen Human Brain Atlas microarray expression (amygdala, thalamus, hypothalamus, cerebellum added; no illustrative values remain in the shading)
   0.6.0  Real Allen Human Brain Atlas regional expression for 12 of 16 regions (amygdala, thalamus, hypothalamus, cerebellum still illustrative, marked *)
   0.5.4  Fixed darker wedge where the temporal and occipital lobe shapes overlapped
@@ -55,6 +56,9 @@ polygon.reg.sel{stroke:none;fill-opacity:.6}
 .ver{font-size:11px;color:var(--mute);margin-top:8px}
 .legend{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--mute);margin-top:6px}
 .legend i{flex:1;height:8px;border-radius:4px;background:linear-gradient(90deg,transparent,var(--acc));border:1px solid var(--line)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
+.chip{border:1px solid var(--line);background:none;color:var(--fg);border-radius:99px;padding:3px 10px;font-size:12px;cursor:pointer}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
 .warn{font-size:12px;color:var(--mute);margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
 </style>
 </head>
@@ -63,7 +67,7 @@ polygon.reg.sel{stroke:none;fill-opacity:.6}
 <h1>Genome Map × Brain Atlas</h1>
 <p class="sub">Pick a brain region on the right: every gene on the genome map lights up by how strongly it’s expressed there. Click a gene for its full brain profile.</p>
 <div class="grid">
-  <div class="card"><h2 id="gt">Genome map · expression in Cortex</h2><svg id="gm" viewBox="0 0 900 840"></svg></div>
+  <div class="card"><h2 id="gt">Genome map · expression in Cortex</h2><div class="chips" id="chips"></div><svg id="gm" viewBox="0 0 900 840"></svg></div>
   <div class="side card">
     <h2>Brain region · schematic, front at left</h2>
     <svg id="brain" viewBox="0 0 740 420"></svg>
@@ -79,7 +83,7 @@ polygon.reg.sel{stroke:none;fill-opacity:.6}
 <div class="ver" id="ver"></div>
 </main>
 <script>
-var APP_VERSION="0.7.0",APP_DATE="2026-11-04";
+var APP_VERSION="0.8.0",APP_DATE="2026-11-05";
 document.getElementById("ver").textContent="Genome Map × Brain Atlas v"+APP_VERSION+" · "+APP_DATE;
 console.info("Genome Map × Brain Atlas v"+APP_VERSION);
 var CH=[["1",248.96],["2",242.19],["3",198.3],["4",190.21],["5",181.54],["6",170.81],["7",159.35],["8",145.14],["9",138.39],["10",133.8],["11",135.09],["12",133.28],["13",114.36],["14",107.04],["15",101.99],["16",90.34],["17",83.26],["18",80.37],["19",58.62],["20",64.44],["21",46.71],["22",50.82],["X",156.04],["Y",57.23]];
@@ -117,6 +121,11 @@ var G=[
 var RD={"BDNF":[0.82,0.8,0.89,0.78,0.97,0.77,0.01,0.0,0.11,0.39,0.5,1.0,0.53,0.05,0.01,0.25],"SLC6A4":[0.06,0.09,0.09,0.11,0.09,0.16,0.06,0.07,0.03,0.07,0.1,0.14,1.0,0.0,0.13,0.09],"DRD2":[0.1,0.12,0.15,0.11,0.22,0.34,0.91,1.0,0.36,0.5,0.44,0.06,0.42,0.0,0.88,0.49],"GAD1":[0.81,0.83,0.8,0.81,0.64,0.78,0.83,0.83,0.89,0.79,0.82,0.65,0.44,0.0,0.94,1.0],"SNAP25":[0.94,0.95,0.94,0.95,1.0,0.9,0.67,0.66,0.51,0.79,0.64,0.93,0.77,0.0,0.71,0.77],"MBP":[0.54,0.59,0.57,0.61,0.44,0.58,0.41,0.51,0.85,0.61,0.42,0.0,0.72,1.0,0.36,0.58],"GFAP":[0.11,0.05,0.02,0.0,0.02,0.23,0.16,0.16,1.0,0.52,0.55,0.01,0.78,0.95,0.07,0.62],"APOE":[0.12,0.08,0.17,0.0,0.1,0.57,0.61,0.63,1.0,0.4,0.55,0.25,0.37,0.28,0.67,0.61],"FOXP2":[0.69,0.8,0.77,0.86,0.23,0.27,0.83,0.67,0.71,1.0,0.59,0.0,0.46,0.27,0.96,0.61],"MAPT":[0.89,0.94,1.0,0.83,0.54,0.22,0.0,0.26,0.54,0.26,0.04,0.34,0.12,0.38,0.01,0.17],"SST":[0.89,0.84,0.88,0.79,0.85,1.0,0.9,0.92,0.79,0.59,0.94,0.0,0.72,0.43,0.98,0.95],"PVALB":[0.64,0.73,0.6,0.76,0.35,0.09,0.19,0.3,0.81,0.93,0.16,1.0,0.69,0.03,0.0,0.16],"SLC17A7":[0.86,0.84,0.88,0.83,1.0,0.74,0.03,0.03,0.03,0.04,0.0,0.7,0.27,0.07,0.07,0.12],"HTT":[0.95,0.97,1.0,0.95,0.97,0.68,0.65,0.76,0.19,0.7,0.08,0.56,0.49,0.0,0.36,0.46],"COMT":[0.18,0.16,0.15,0.1,0.0,0.13,0.16,0.31,0.76,0.32,0.07,0.19,0.26,1.0,0.05,0.25],"OXTR":[0.3,0.27,0.3,0.23,0.46,0.49,0.42,0.47,0.87,0.48,0.89,0.0,0.74,0.24,0.82,1.0],"TH":[0.17,0.12,0.17,0.05,0.4,0.33,0.97,0.57,0.22,0.29,1.0,0.0,0.78,0.03,0.74,0.42],"CALB1":[0.57,0.52,0.57,0.5,0.57,0.69,0.99,0.93,0.24,0.67,0.8,0.91,0.51,0.0,1.0,0.99],"RELN":[0.16,0.11,0.15,0.09,0.02,0.25,0.29,0.28,0.01,0.07,0.16,1.0,0.02,0.0,0.33,0.29],"SCN1A":[0.78,0.9,0.75,0.98,0.68,0.54,0.65,0.68,0.72,1.0,0.62,0.48,0.91,0.0,0.51,0.68]};
 var ILL=[];
 G.forEach(function(g){var v=RD[g[0]];if(!v)return;v.forEach(function(x,i){if(x!==null&&ILL.indexOf(i)<0)g[4][i]=x})});
+var NG=[["APP","Amyloid precursor protein","21",25.88,[0.76,0.76,0.78,0.78,0.93,0.84,0.65,0.8,0.92,0.86,0.39,0.0,0.81,1.0,0.71,0.78],"AD"],["PSEN1","Presenilin 1","14",73.14,[0.14,0.13,0.15,0.13,0.0,0.07,0.16,0.31,0.78,0.38,0.03,0.01,0.39,1.0,0.06,0.23],"AD"],["PSEN2","Presenilin 2","1",227.06,[0.71,0.7,0.69,0.62,0.67,0.59,0.45,0.51,0.63,1.0,0.89,0.85,0.91,0.0,0.47,0.87],"AD"],["TREM2","Microglial receptor TREM2","6",41.16,[0.14,0.12,0.11,0.0,0.06,0.13,0.29,0.22,0.61,0.38,0.24,0.01,0.4,1.0,0.02,0.33],"AD"],["CLU","Clusterin","8",27.6,[0.74,0.65,0.66,0.43,0.0,0.4,0.41,0.46,1.0,0.38,0.22,0.42,0.1,0.3,0.43,0.39],"AD"],["BIN1","Bridging integrator 1","2",127.05,[0.31,0.32,0.35,0.26,0.4,0.43,0.33,0.48,0.9,0.54,0.17,0.0,0.45,1.0,0.29,0.35],"AD"],["PICALM","Endocytosis adaptor PICALM","11",85.96,[0.03,0.04,0.03,0.05,0.15,0.2,0.2,0.32,0.82,0.45,0.2,0.0,0.52,1.0,0.11,0.35],"AD"],["SORL1","Sortilin-related receptor","11",121.45,[0.63,0.69,0.58,0.71,0.53,0.08,0.0,0.07,0.8,0.42,0.21,0.62,0.47,1.0,0.1,0.25],"AD"],["ABCA7","Lipid transporter ABCA7","19",1.04,[0.5,0.53,0.46,0.55,0.47,0.42,0.22,0.2,0.29,0.62,0.54,1.0,0.65,0.0,0.17,0.46],"AD"],["CR1","Complement receptor 1","1",207.5,[0.12,0.05,0.11,0.06,0.11,0.18,0.12,0.13,0.28,0.16,0.07,0.0,0.16,1.0,0.06,0.07],"AD"],["CD33","Microglial receptor CD33","19",51.23,[0.23,0.15,0.21,0.05,0.18,0.29,0.33,0.27,0.67,0.42,0.33,0.0,0.49,1.0,0.13,0.43],"AD"],["BACE1","Beta-secretase 1","11",117.29,[0.29,0.28,0.27,0.26,0.13,0.08,0.12,0.26,0.73,0.39,0.0,0.05,0.37,1.0,0.08,0.21],"AD"],["SNCA","Alpha-synuclein","4",89.72,[0.96,0.88,1.0,0.77,0.74,0.64,0.3,0.34,0.14,0.0,0.3,0.6,0.32,0.4,0.3,0.49],"PD"],["LRRK2","Leucine-rich repeat kinase 2","12",40.2,[0.75,0.85,0.8,1.0,0.54,0.71,0.92,0.93,0.6,0.62,0.48,0.0,0.66,0.25,0.75,0.63],"PD"],["PRKN","Parkin","6",161.35,[0.92,0.85,0.98,0.77,1.0,0.47,0.81,0.88,0.37,0.25,0.03,0.21,0.24,0.0,0.92,0.59],"PD"],["PINK1","PTEN-induced kinase 1","1",20.65,[0.99,1.0,0.96,0.87,0.5,0.44,0.39,0.52,0.78,0.63,0.25,0.0,0.65,0.21,0.38,0.46],"PD"],["PARK7","DJ-1","1",7.96,[0.45,0.51,0.45,0.41,0.13,0.0,0.19,0.25,1.0,0.24,0.14,0.48,0.23,0.59,0.3,0.34],"PD"],["GBA1","Glucocerebrosidase","1",155.23,[1.0,0.89,0.95,0.73,0.79,0.53,0.34,0.46,0.92,0.79,0.66,0.0,0.73,0.89,0.48,0.63],"PD"],["VPS35","Retromer subunit VPS35","16",46.69,[0.65,0.61,0.61,0.46,0.76,0.45,0.26,0.28,0.51,0.84,0.81,0.0,1.0,0.16,0.3,0.8],"PD"],["SLC6A3","Dopamine transporter","5",1.39,[0.03,0.07,0.05,0.05,0.07,0.23,0.0,0.06,0.09,0.11,0.27,0.11,1.0,0.11,0.09,0.19],"PD"],["NR4A2","Nurr1","2",156.33,[0.63,0.57,0.64,0.57,0.72,0.28,0.17,0.16,0.29,0.19,0.31,1.0,0.45,0.65,0.0,0.19],"PD"],["DISC1","Disrupted in schizophrenia 1","1",231.63,[0.26,0.23,0.27,0.13,0.35,0.63,0.42,0.53,1.0,0.66,0.44,0.0,0.67,0.91,0.31,0.59],"SCZ"],["NRG1","Neuregulin 1","8",32.5,[0.63,0.64,0.54,0.62,0.4,0.66,0.46,0.49,0.61,0.73,0.82,0.64,1.0,0.0,0.45,0.86],"SCZ"],["DTNBP1","Dysbindin","6",15.52,[0.5,0.46,0.53,0.28,0.0,0.31,0.7,0.82,0.67,0.59,0.48,0.15,0.4,0.33,1.0,0.53],"SCZ"],["GRIN2A","NMDA receptor subunit 2A","16",9.76,[0.91,0.95,0.92,1.0,0.95,0.7,0.55,0.57,0.42,0.57,0.07,0.49,0.27,0.0,0.39,0.2],"SCZ"],["GRM3","Metabotropic glutamate receptor 3","7",86.7,[0.52,0.47,0.5,0.41,0.16,0.28,0.7,0.77,0.72,0.45,0.0,0.09,0.32,1.0,0.55,0.27],"SCZ"],["CACNA1C","L-type calcium channel Cav1.2","12",2.08,[0.85,0.88,0.89,0.93,0.84,0.97,0.82,0.87,0.45,1.0,0.66,0.5,0.72,0.0,0.77,0.74],"SCZ"],["C4A","Complement C4A","6",31.98,[0.11,0.03,0.08,0.0,0.08,0.75,0.29,0.18,0.88,0.68,1.0,0.06,0.83,0.98,0.43,0.86],"SCZ"],["SETD1A","Histone methyltransferase SETD1A","16",30.97,[0.61,0.66,0.63,0.66,0.43,0.28,0.35,0.47,0.53,0.38,0.0,1.0,0.31,0.54,0.22,0.33],"SCZ"],["HTR2A","Serotonin receptor 5-HT2A","13",46.83,[0.95,0.98,0.98,1.0,0.65,0.6,0.31,0.18,0.25,0.45,0.59,0.0,0.48,0.15,0.52,0.5],"SCZ"],["ZNF804A","Zinc finger protein 804A","2",184.6,[0.56,0.55,0.52,0.5,0.76,0.71,0.5,0.48,0.34,0.47,0.76,0.6,0.62,0.0,0.69,1.0],"SCZ"],["AKT1","AKT serine/threonine kinase 1","14",104.77,[0.66,0.73,0.68,0.68,0.31,0.02,0.36,0.48,0.53,0.28,0.0,1.0,0.23,0.32,0.25,0.16],"SCZ"]];
+var GRP={APOE:"AD",MAPT:"AD",TH:"PD",DRD2:"PD",COMT:"SCZ",GAD1:"SCZ",RELN:"SCZ"};
+G.forEach(function(g){g[5]=GRP[g[0]]||"GEN"});
+NG.forEach(function(x){G.push([x[0],x[1],x[2],x[3],x[4],x[5]])});
+var filt="ALL";
 var NS="http://www.w3.org/2000/svg",reg=0,gsel=12,dots=[],rings=[];
 function el(t,a,p){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
 var gm=document.getElementById("gm"),X0=40,W=840,RH=34,pos={};
@@ -128,17 +137,31 @@ CH.forEach(function(c,i){
 });
 var byChr={};
 G.forEach(function(g,i){(byChr[g[2]]=byChr[g[2]]||[]).push(i)});
-G.forEach(function(g,i){
-  var p=pos[g[2]],x=X0+g[3]/p.len*p.w,list=byChr[g[2]].slice().sort(function(a,b){return G[a][3]-G[b][3]});
-  var up=list.indexOf(i)%2==0,gr=el("g",{class:"gene"},gm);
-  el("circle",{cx:x,cy:p.y+19,r:12,fill:"transparent"},gr);
-  rings[i]=el("circle",{cx:x,cy:p.y+19,r:9,fill:"none",stroke:"#f59e0b","stroke-width":2.5,opacity:0},gr);
-  dots[i]=el("circle",{cx:x,cy:p.y+19,r:6,fill:"#6d28d9",stroke:"#6d28d9"},gr);
-  var anchor=x>X0+W-60?"end":"start";
-  el("text",{x:x+(anchor=="end"?-4:4),y:up?p.y+9:p.y+34,"text-anchor":anchor,class:"gl"},gr).textContent=g[0];
-  el("title",{},gr).textContent=g[0]+" · "+g[1];
-  gr.onclick=function(){gsel=i;draw()};
+var DC={AD:"#0d9488",PD:"#dc2626",SCZ:"#2563eb",GEN:"#6d28d9"},DN={AD:"Alzheimer\u2019s",PD:"Parkinson\u2019s",SCZ:"Schizophrenia",GEN:"Other"};
+var glabs=[],gvis=[],ggr=[];
+Object.keys(byChr).forEach(function(c){
+  var p=pos[c],list=byChr[c].slice().sort(function(a,b){return G[a][3]-G[b][3]}),end={u:-1e9,d:-1e9};
+  list.forEach(function(i){
+    var g=G[i],x=X0+g[3]/p.len*p.w,w=g[0].length*5.6,anchor=x>X0+W-60?"end":"start",x0=anchor=="end"?x-4-w:x+4,side=null;
+    if(x0>end.u+4)side="u";else if(x0>end.d+4)side="d";
+    if(side)end[side]=x0+w;
+    var gr=el("g",{class:"gene"},gm);ggr[i]=gr;
+    el("circle",{cx:x,cy:p.y+19,r:12,fill:"transparent"},gr);
+    rings[i]=el("circle",{cx:x,cy:p.y+19,r:9,fill:"none",stroke:"#f59e0b","stroke-width":2.5,opacity:0},gr);
+    dots[i]=el("circle",{cx:x,cy:p.y+19,r:6,fill:DC[g[5]],stroke:DC[g[5]]},gr);
+    glabs[i]=el("text",{x:x+(anchor=="end"?-4:4),y:side=="d"?p.y+34:p.y+9,"text-anchor":anchor,class:"gl"},gr);
+    glabs[i].textContent=g[0];gvis[i]=!!side;
+    el("title",{},gr).textContent=g[0]+" \u00b7 "+g[1];
+    gr.onclick=function(){gsel=i;draw()};
+  });
 });
+var chipBox=document.getElementById("chips");
+[["ALL","All genes"],["AD","Alzheimer\u2019s"],["PD","Parkinson\u2019s"],["SCZ","Schizophrenia"],["GEN","Other"]].forEach(function(c){
+  var n=c[0]=="ALL"?G.length:G.filter(function(g){return g[5]==c[0]}).length,b=document.createElement("button");
+  b.className="chip"+(c[0]=="ALL"?" on":"");b.dataset.f=c[0];
+  b.innerHTML=(c[0]=="ALL"?"":"<span style='color:"+DC[c[0]]+"'>\u25cf</span> ")+c[1]+" ("+n+")";
+  b.onclick=function(){filt=c[0];Array.prototype.forEach.call(chipBox.children,function(x){x.className="chip"+(x.dataset.f==filt?" on":"")});draw()};
+  chipBox.appendChild(b)});
 // brain
 var bs=document.getElementById("brain"),regs={};
 var SIL="M70 220C62 140 135 58 265 46C390 38 505 78 540 170C556 212 548 244 520 258C498 268 478 266 462 276C470 292 472 312 446 328C420 340 380 336 340 322C300 308 250 306 205 298C140 288 76 262 70 220Z";
@@ -194,7 +217,7 @@ function draw(){
   document.getElementById("gt").textContent="Genome map · expression in "+R[reg][1];
   R.forEach(function(r,j){regs[r[0]].setAttribute("class","reg"+(j==reg?" sel":""))});
   G.forEach(function(g,i){
-    var v=g[4][reg];
+    var v=g[4][reg];glabs[i].style.display=(gvis[i]||i==gsel)?"":"none";ggr[i].style.display=(filt=="ALL"||g[5]==filt)?"":"none";
     dots[i].setAttribute("fill-opacity",(.1+.9*v).toFixed(2));
     dots[i].setAttribute("r",(3.5+4.5*v).toFixed(1));
     rings[i].setAttribute("opacity",i==gsel?1:0);
@@ -203,16 +226,18 @@ function draw(){
   bars.innerHTML="";
   if(gsel<0){info.textContent="Click a gene on the map.";return}
   var g=G[gsel];
-  info.innerHTML="<b>"+g[0]+"</b> · "+g[1]+"<br><span style='color:var(--mute)'>Chromosome "+g[2]+", ~"+g[3].toFixed(1)+" Mb</span>";
+  info.innerHTML="<b>"+g[0]+"</b> · "+g[1]+"<br><span style='color:var(--mute)'>Chromosome "+g[2]+", ~"+g[3].toFixed(1)+" Mb \u00b7 "+DN[g[5]]+"</span>";
   R.map(function(r,j){return [r[1]+(ILL.indexOf(j)>=0?" *":""),g[4][j]]}).sort(function(a,b){return b[1]-a[1]}).forEach(function(r){
     var d=document.createElement("div");d.innerHTML="<span class='n'>"+r[0]+"</span><span class='b'><i style='width:"+Math.round(r[1]*100)+"%'></i></span>";bars.appendChild(d)});
 }
 var CT={"c":["Exc RORB","Exc THEMIS","Exc FEZF2","Exc LINC00507","Inh PVALB","Inh SST","Inh VIP","Inh LAMP5","Inh PAX6/ADARB2","Inh other","Astrocyte","Oligodendrocyte","OPC","Microglia","Endothelial","VLMC","Pericyte"],"g":{"APOE":[0.0,0.0,0.01,0.0,0.0,0.0,0.0,0.0,0.0,0.0,3.86,0.0,0.0,0.5,0.0,0.0,0.0],"BDNF":[0.31,1.11,0.13,0.85,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"CALB1":[0.56,0.1,0.07,1.48,1.24,0.12,0.08,0.89,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"COMT":[0.74,1.06,1.57,1.05,0.36,0.84,1.05,1.11,1.74,0.18,0.31,0.43,0.12,0.0,0.0,0.24,0.21],"DRD2":[0.0,0.01,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"FOXP2":[6.65,3.05,6.77,0.17,0.16,0.25,0.15,0.15,0.12,0.26,0.19,0.15,0.11,7.92,0.2,6.87,0.58],"GAD1":[0.0,0.0,0.0,0.0,9.28,9.09,9.09,9.45,8.8,9.91,0.0,0.0,3.28,0.0,0.0,0.0,0.0],"GFAP":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,7.65,0.0,0.0,0.0,0.0,0.0,0.0],"HTT":[5.6,5.83,5.95,6.24,4.86,4.33,3.48,4.45,4.74,5.46,1.29,0.68,0.75,0.33,0.27,0.98,0.15],"MAPT":[7.5,7.54,7.39,7.55,7.24,7.38,7.5,7.28,7.5,7.43,7.18,7.19,5.7,0.01,0.01,0.27,0.28],"MBP":[3.11,1.06,2.14,2.14,2.49,1.11,1.17,3.61,0.81,2.4,0.07,11.84,2.8,1.54,0.0,0.0,0.3],"OXTR":[0.78,1.24,1.47,1.47,0.01,0.3,0.0,0.0,0.18,0.02,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"PVALB":[0.0,0.13,0.0,0.0,4.85,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"RELN":[0.89,0.37,0.66,0.38,1.02,3.04,3.41,5.49,8.28,0.38,0.62,0.55,0.44,0.49,0.47,0.89,0.47],"SCN1A":[7.89,7.42,5.94,7.47,8.65,7.68,6.98,8.65,7.45,8.17,0.0,0.0,8.59,0.0,0.0,0.0,0.0],"SLC17A7":[7.32,7.37,7.27,6.75,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"SLC6A4":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"SNAP25":[10.62,10.92,10.56,10.42,9.52,9.98,9.08,9.87,8.94,9.4,0.11,0.73,3.64,0.04,0.03,0.09,0.17],"SST":[0.0,0.0,0.0,0.0,0.72,8.46,0.0,1.65,0.7,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"TH":[0.0,0.01,0.0,0.0,0.0,0.36,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]}};
+var CTN={"APP":[8.6,8.74,8.57,8.67,8.58,8.3,8.45,8.72,8.85,8.42,1.98,9.11,8.24,0.36,8.24,7.97,1.46],"PSEN1":[2.36,3.39,3.42,3.93,1.25,1.81,1.5,0.96,2.02,1.02,0.68,8.19,0.29,0.26,0.09,0.08,0.18],"PSEN2":[0.0,0.02,0.01,0.0,0.0,0.0,0.01,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"TREM2":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.51,0.0,0.0,0.0],"CLU":[6.64,6.18,7.27,6.75,7.33,7.74,8.54,8.06,7.9,8.27,10.26,0.87,2.51,0.0,2.81,0.1,0.05],"BIN1":[3.85,4.73,4.28,4.57,3.0,2.79,3.92,3.65,3.56,5.08,0.0,4.63,0.0,3.51,0.0,0.15,0.0],"PICALM":[6.64,6.85,7.06,6.85,6.25,5.97,5.67,6.0,6.33,5.82,4.77,8.82,4.07,9.26,8.46,1.19,4.83],"SORL1":[8.29,7.33,8.08,7.52,5.75,2.79,2.74,5.05,4.41,4.35,6.85,3.06,1.48,10.81,0.03,0.33,0.11],"ABCA7":[0.81,1.1,1.59,0.63,0.55,0.22,0.16,0.28,0.26,0.33,0.05,0.0,0.0,0.0,0.0,0.0,0.0],"CR1":[0.0,0.0,0.01,0.0,0.01,0.0,0.01,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"CD33":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"BACE1":[1.72,2.21,3.04,1.57,1.92,1.99,1.5,2.38,2.32,2.36,0.02,2.51,0.05,0.0,0.0,0.0,0.0],"SNCA":[7.6,8.35,7.83,7.91,0.41,4.24,2.55,1.46,4.31,7.47,0.01,2.01,0.38,1.14,0.0,0.14,0.08],"LRRK2":[5.86,5.69,4.41,6.26,0.47,1.32,0.23,0.15,0.45,0.11,0.01,0.0,7.16,0.05,1.25,0.0,0.0],"PRKN":[7.85,8.12,8.25,8.15,8.51,8.04,8.19,8.09,8.18,8.73,8.72,7.57,8.81,5.56,4.75,8.14,4.05],"PINK1":[0.24,0.45,0.39,0.19,0.05,0.06,0.1,0.0,0.08,0.06,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"PARK7":[2.68,3.65,2.48,2.18,1.38,1.58,1.44,2.34,1.45,1.77,0.25,0.06,0.0,0.0,0.01,0.0,0.23],"GBA1":[0.03,0.13,0.09,0.17,0.0,0.0,0.01,0.0,0.04,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"VPS35":[5.09,5.97,5.96,6.26,4.09,4.52,3.79,3.76,4.27,6.25,0.02,0.1,0.01,0.01,0.0,0.11,0.0],"SLC6A3":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"NR4A2":[0.0,2.53,1.13,0.0,0.0,0.0,0.0,0.0,0.0,0.11,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"DISC1":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"NRG1":[10.06,10.7,9.27,8.65,0.83,3.36,3.47,7.53,3.44,1.86,1.11,0.93,0.62,0.66,0.7,1.61,0.69],"DTNBP1":[0.97,1.39,1.59,3.72,1.43,0.6,1.06,0.08,1.81,1.82,0.2,0.06,0.0,0.07,0.07,0.0,0.0],"GRIN2A":[9.72,9.24,9.36,9.55,6.6,6.97,8.37,10.83,5.89,6.84,0.33,0.48,0.27,0.28,0.26,0.15,0.27],"GRM3":[7.79,4.26,7.25,5.43,2.6,0.6,1.23,3.41,1.87,2.54,4.07,9.89,0.01,0.0,0.0,0.0,10.99],"CACNA1C":[9.31,9.41,8.97,9.16,8.34,8.75,9.09,7.7,9.03,8.61,4.63,0.31,5.12,0.19,0.37,5.54,11.12],"C4A":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"SETD1A":[0.23,0.28,0.22,0.23,0.1,0.11,0.09,0.1,0.1,0.26,0.08,0.01,0.0,0.0,0.0,0.06,0.03],"HTR2A":[6.74,3.23,2.66,6.01,0.27,0.43,0.09,0.53,1.28,6.67,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"ZNF804A":[3.89,8.53,4.82,7.6,9.87,3.31,8.1,0.7,4.75,9.36,0.53,0.6,4.94,0.68,0.39,1.19,0.71],"AKT1":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]};
+for(var k in CTN)CT.g[k]=CTN[k];
 function cellsDraw(){
   var box=document.getElementById("cells"),ci=document.getElementById("cinfo");box.innerHTML="";
   if(gsel<0){ci.textContent="Click a gene to see which cortical cell types express it.";return}
   var v=CT.g[G[gsel][0]],mx=Math.max.apply(null,v);
-  ci.textContent=mx<0.5?G[gsel][0]+" is essentially undetected in human cortex (it is expressed mainly in other brain regions).":"Trimmed-mean expression, relative to the strongest cell type.";
+  ci.textContent=mx<0.5?G[gsel][0]+" reads as essentially undetected in this cortex dataset. The nuclei were sorted for neurons, so glial and microglial genes can read low here.":"Trimmed-mean expression, relative to the strongest cell type.";
   CT.c.map(function(n,i){return [n,v[i]]}).sort(function(a,b){return b[1]-a[1]}).forEach(function(r){
     var d=document.createElement("div");d.innerHTML="<span class='n'>"+r[0]+"</span><span class='b'><i style='width:"+(mx>0?Math.round(r[1]/mx*100):0)+"%'></i></span>";box.appendChild(d)});
 }
