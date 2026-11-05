@@ -3,12 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="version" content="0.8.2">
+<meta name="version" content="0.9.0">
 <title>Genome Map × Brain Atlas</title>
 <!--
   Genome Map x Brain Atlas  (single-file app)
-  VERSION 0.8.2 (2026-11-05)  — keep in sync with APP_VERSION in the script below
+  VERSION 0.9.0 (2026-11-05)  — keep in sync with APP_VERSION in the script below
   Changelog
+  0.9.0  Search box: type a gene symbol or protein name to select it (all 52 genes, including those with hidden labels)
   0.8.2  All 52 gene positions now taken from MyGene.info (GRCh38) instead of typed from memory
   0.8.1  Gene labels no longer run together (NR4A2/SCN1A, DRD2/SORL1); labels that cannot fit show on selection
   0.8.0  32 disease genes added (Alzheimer's, Parkinson's, schizophrenia) with real Allen regional and cortex cell-type data; filter chips; colour by disease; collision-aware gene labels; positions of added genes approximate
@@ -58,6 +59,8 @@ polygon.reg.sel{stroke:none;fill-opacity:.6}
 .ver{font-size:11px;color:var(--mute);margin-top:8px}
 .legend{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--mute);margin-top:6px}
 .legend i{flex:1;height:8px;border-radius:4px;background:linear-gradient(90deg,transparent,var(--acc));border:1px solid var(--line)}
+.q{width:100%;padding:8px 10px;margin:0 0 6px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font:inherit;font-size:14px}
+.qn{font-size:12px;color:var(--mute);min-height:18px;margin-bottom:4px}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
 .chip{border:1px solid var(--line);background:none;color:var(--fg);border-radius:99px;padding:3px 10px;font-size:12px;cursor:pointer}
 .chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
@@ -69,7 +72,8 @@ polygon.reg.sel{stroke:none;fill-opacity:.6}
 <h1>Genome Map × Brain Atlas</h1>
 <p class="sub">Pick a brain region on the right: every gene on the genome map lights up by how strongly it’s expressed there. Click a gene for its full brain profile.</p>
 <div class="grid">
-  <div class="card"><h2 id="gt">Genome map · expression in Cortex</h2><div class="chips" id="chips"></div><svg id="gm" viewBox="0 0 900 840"></svg></div>
+  <div class="card"><h2 id="gt">Genome map · expression in Cortex</h2><input id="q" class="q" list="gl" type="search" placeholder="Search a gene or protein (e.g. SORL1, dopamine)" autocomplete="off" autocapitalize="off" spellcheck="false"><datalist id="gl"></datalist><div class="qn" id="qn"></div>
+  <div class="chips" id="chips"></div><svg id="gm" viewBox="0 0 900 840"></svg></div>
   <div class="side card">
     <h2>Brain region · schematic, front at left</h2>
     <svg id="brain" viewBox="0 0 740 420"></svg>
@@ -85,7 +89,7 @@ polygon.reg.sel{stroke:none;fill-opacity:.6}
 <div class="ver" id="ver"></div>
 </main>
 <script>
-var APP_VERSION="0.8.2",APP_DATE="2026-11-05";
+var APP_VERSION="0.9.0",APP_DATE="2026-11-05";
 document.getElementById("ver").textContent="Genome Map × Brain Atlas v"+APP_VERSION+" · "+APP_DATE;
 console.info("Genome Map × Brain Atlas v"+APP_VERSION);
 var CH=[["1",248.96],["2",242.19],["3",198.3],["4",190.21],["5",181.54],["6",170.81],["7",159.35],["8",145.14],["9",138.39],["10",133.8],["11",135.09],["12",133.28],["13",114.36],["14",107.04],["15",101.99],["16",90.34],["17",83.26],["18",80.37],["19",58.62],["20",64.44],["21",46.71],["22",50.82],["X",156.04],["Y",57.23]];
@@ -164,6 +168,22 @@ var chipBox=document.getElementById("chips");
   b.innerHTML=(c[0]=="ALL"?"":"<span style='color:"+DC[c[0]]+"'>\u25cf</span> ")+c[1]+" ("+n+")";
   b.onclick=function(){filt=c[0];Array.prototype.forEach.call(chipBox.children,function(x){x.className="chip"+(x.dataset.f==filt?" on":"")});draw()};
   chipBox.appendChild(b)});
+var qEl=document.getElementById("q"),qn=document.getElementById("qn"),dl=document.getElementById("gl");
+G.forEach(function(g){var o=document.createElement("option");o.value=g[0];o.label=g[1];dl.appendChild(o)});
+function findGene(q){q=q.trim().toUpperCase();if(!q)return -1;var i,ql=q.toLowerCase();
+  for(i=0;i<G.length;i++)if(G[i][0]==q)return i;
+  for(i=0;i<G.length;i++)if(G[i][0].indexOf(q)==0)return i;
+  if(q.length>=3)for(i=0;i<G.length;i++)if(G[i][1].toLowerCase().indexOf(ql)>=0)return i;
+  return -1}
+function jump(scroll){var i=findGene(qEl.value);
+  if(i<0){qn.textContent=qEl.value.trim()?"No matching gene":"";return}
+  qn.textContent=G[i][0]+" \u00b7 "+G[i][1];
+  if(filt!="ALL"&&G[i][5]!=filt){filt="ALL";Array.prototype.forEach.call(chipBox.children,function(x){x.className="chip"+(x.dataset.f=="ALL"?" on":"")})}
+  gsel=i;draw();
+  if(scroll)ggr[i].scrollIntoView({behavior:"smooth",block:"center"})}
+qEl.addEventListener("input",function(){jump(false)});
+qEl.addEventListener("change",function(){jump(true)});
+qEl.addEventListener("keydown",function(e){if(e.key=="Enter")jump(true)});
 // brain
 var bs=document.getElementById("brain"),regs={};
 var SIL="M70 220C62 140 135 58 265 46C390 38 505 78 540 170C556 212 548 244 520 258C498 268 478 266 462 276C470 292 472 312 446 328C420 340 380 336 340 322C300 308 250 306 205 298C140 288 76 262 70 220Z";
