@@ -3,12 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="version" content="0.8.0">
+<meta name="version" content="0.8.1">
 <title>Genome Map × Brain Atlas</title>
 <!--
   Genome Map x Brain Atlas  (single-file app)
-  VERSION 0.8.0 (2026-11-05)  — keep in sync with APP_VERSION in the script below
+  VERSION 0.8.1 (2026-11-05)  — keep in sync with APP_VERSION in the script below
   Changelog
+  0.8.1  Gene labels no longer run together (NR4A2/SCN1A, DRD2/SORL1); labels that cannot fit show on selection
   0.8.0  32 disease genes added (Alzheimer's, Parkinson's, schizophrenia) with real Allen regional and cortex cell-type data; filter chips; colour by disease; collision-aware gene labels; positions of added genes approximate
   0.7.0  All 16 regions now use real Allen Human Brain Atlas microarray expression (amygdala, thalamus, hypothalamus, cerebellum added; no illustrative values remain in the shading)
   0.6.0  Real Allen Human Brain Atlas regional expression for 12 of 16 regions (amygdala, thalamus, hypothalamus, cerebellum still illustrative, marked *)
@@ -83,7 +84,7 @@ polygon.reg.sel{stroke:none;fill-opacity:.6}
 <div class="ver" id="ver"></div>
 </main>
 <script>
-var APP_VERSION="0.8.0",APP_DATE="2026-11-05";
+var APP_VERSION="0.8.1",APP_DATE="2026-11-05";
 document.getElementById("ver").textContent="Genome Map × Brain Atlas v"+APP_VERSION+" · "+APP_DATE;
 console.info("Genome Map × Brain Atlas v"+APP_VERSION);
 var CH=[["1",248.96],["2",242.19],["3",198.3],["4",190.21],["5",181.54],["6",170.81],["7",159.35],["8",145.14],["9",138.39],["10",133.8],["11",135.09],["12",133.28],["13",114.36],["14",107.04],["15",101.99],["16",90.34],["17",83.26],["18",80.37],["19",58.62],["20",64.44],["21",46.71],["22",50.82],["X",156.04],["Y",57.23]];
@@ -142,8 +143,8 @@ var glabs=[],gvis=[],ggr=[];
 Object.keys(byChr).forEach(function(c){
   var p=pos[c],list=byChr[c].slice().sort(function(a,b){return G[a][3]-G[b][3]}),end={u:-1e9,d:-1e9};
   list.forEach(function(i){
-    var g=G[i],x=X0+g[3]/p.len*p.w,w=g[0].length*5.6,anchor=x>X0+W-60?"end":"start",x0=anchor=="end"?x-4-w:x+4,side=null;
-    if(x0>end.u+4)side="u";else if(x0>end.d+4)side="d";
+    var g=G[i],x=X0+g[3]/p.len*p.w,w=g[0].length*6.9,anchor=x>X0+W-60?"end":"start",x0=anchor=="end"?x-4-w:x+4,side=null;
+    if(x0>end.u+7)side="u";else if(x0>end.d+7)side="d";
     if(side)end[side]=x0+w;
     var gr=el("g",{class:"gene"},gm);ggr[i]=gr;
     el("circle",{cx:x,cy:p.y+19,r:12,fill:"transparent"},gr);
