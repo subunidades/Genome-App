@@ -3,12 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="version" content="0.5.4">
+<meta name="version" content="0.7.0">
 <title>Genome Map × Brain Atlas</title>
 <!--
   Genome Map x Brain Atlas  (single-file app)
-  VERSION 0.5.4 (2026-11-04)  — keep in sync with APP_VERSION in the script below
+  VERSION 0.7.0 (2026-11-04)  — keep in sync with APP_VERSION in the script below
   Changelog
+  0.7.0  All 16 regions now use real Allen Human Brain Atlas microarray expression (amygdala, thalamus, hypothalamus, cerebellum added; no illustrative values remain in the shading)
+  0.6.0  Real Allen Human Brain Atlas regional expression for 12 of 16 regions (amygdala, thalamus, hypothalamus, cerebellum still illustrative, marked *)
   0.5.4  Fixed darker wedge where the temporal and occipital lobe shapes overlapped
   0.5.3  Leader lines reordered so none cross; cerebellum and brainstem now tuck cleanly under an opaque cerebrum
   0.5.2  Region names no longer wrap in the profile bars; shorter brain heading; parietal label moved clear of the sulci
@@ -73,11 +75,11 @@ polygon.reg.sel{stroke:none;fill-opacity:.6}
     <div class="bars" id="cells"></div>
   </div>
 </div>
-<p class="warn">The brain-slice and genome-map dot values are illustrative: they are hand-curated approximations of well-known patterns, not measurements from the Allen Human Brain Atlas, and the anatomy is a simplified composite lateral slice with deep structures projected onto it. Chromosome sizes (GRCh38) and gene positions are approximate. The cortical cell-type bars are real: Allen human cortex single-nucleus data (trimmed means per cell-type cluster, 120 clusters averaged into 17 classes). For regional data, download the atlas from human.brain-map.org.</p>
+<p class="warn">Regional expression is real Allen Human Brain Atlas microarray data (six donors averaged, each gene scaled 0 to 1 across regions). The anatomy is a simplified composite lateral slice with deep structures projected onto it. Chromosome sizes (GRCh38) and gene positions are approximate. The cortical cell-type bars are real: Allen human cortex single-nucleus data (trimmed means per cell-type cluster, 120 clusters averaged into 17 classes). Data: Allen Institute for Brain Science (api.brain-map.org, brain-map.org).</p>
 <div class="ver" id="ver"></div>
 </main>
 <script>
-var APP_VERSION="0.5.4",APP_DATE="2026-11-04";
+var APP_VERSION="0.7.0",APP_DATE="2026-11-04";
 document.getElementById("ver").textContent="Genome Map × Brain Atlas v"+APP_VERSION+" · "+APP_DATE;
 console.info("Genome Map × Brain Atlas v"+APP_VERSION);
 var CH=[["1",248.96],["2",242.19],["3",198.3],["4",190.21],["5",181.54],["6",170.81],["7",159.35],["8",145.14],["9",138.39],["10",133.8],["11",135.09],["12",133.28],["13",114.36],["14",107.04],["15",101.99],["16",90.34],["17",83.26],["18",80.37],["19",58.62],["20",64.44],["21",46.71],["22",50.82],["X",156.04],["Y",57.23]];
@@ -112,6 +114,9 @@ var G=[
   var gv=gp[g[0]]!==undefined?gp[g[0]]:p[3]*.6;
   g[4]=[L[0],L[1],L[2],L[3],p[1],p[4],p[3],p[3]*.9,gv,p[2],p[5],p[6],p[7],p[8],p[3]*.95,(p[4]+p[5])/2].map(cl)});
 })();
+var RD={"BDNF":[0.82,0.8,0.89,0.78,0.97,0.77,0.01,0.0,0.11,0.39,0.5,1.0,0.53,0.05,0.01,0.25],"SLC6A4":[0.06,0.09,0.09,0.11,0.09,0.16,0.06,0.07,0.03,0.07,0.1,0.14,1.0,0.0,0.13,0.09],"DRD2":[0.1,0.12,0.15,0.11,0.22,0.34,0.91,1.0,0.36,0.5,0.44,0.06,0.42,0.0,0.88,0.49],"GAD1":[0.81,0.83,0.8,0.81,0.64,0.78,0.83,0.83,0.89,0.79,0.82,0.65,0.44,0.0,0.94,1.0],"SNAP25":[0.94,0.95,0.94,0.95,1.0,0.9,0.67,0.66,0.51,0.79,0.64,0.93,0.77,0.0,0.71,0.77],"MBP":[0.54,0.59,0.57,0.61,0.44,0.58,0.41,0.51,0.85,0.61,0.42,0.0,0.72,1.0,0.36,0.58],"GFAP":[0.11,0.05,0.02,0.0,0.02,0.23,0.16,0.16,1.0,0.52,0.55,0.01,0.78,0.95,0.07,0.62],"APOE":[0.12,0.08,0.17,0.0,0.1,0.57,0.61,0.63,1.0,0.4,0.55,0.25,0.37,0.28,0.67,0.61],"FOXP2":[0.69,0.8,0.77,0.86,0.23,0.27,0.83,0.67,0.71,1.0,0.59,0.0,0.46,0.27,0.96,0.61],"MAPT":[0.89,0.94,1.0,0.83,0.54,0.22,0.0,0.26,0.54,0.26,0.04,0.34,0.12,0.38,0.01,0.17],"SST":[0.89,0.84,0.88,0.79,0.85,1.0,0.9,0.92,0.79,0.59,0.94,0.0,0.72,0.43,0.98,0.95],"PVALB":[0.64,0.73,0.6,0.76,0.35,0.09,0.19,0.3,0.81,0.93,0.16,1.0,0.69,0.03,0.0,0.16],"SLC17A7":[0.86,0.84,0.88,0.83,1.0,0.74,0.03,0.03,0.03,0.04,0.0,0.7,0.27,0.07,0.07,0.12],"HTT":[0.95,0.97,1.0,0.95,0.97,0.68,0.65,0.76,0.19,0.7,0.08,0.56,0.49,0.0,0.36,0.46],"COMT":[0.18,0.16,0.15,0.1,0.0,0.13,0.16,0.31,0.76,0.32,0.07,0.19,0.26,1.0,0.05,0.25],"OXTR":[0.3,0.27,0.3,0.23,0.46,0.49,0.42,0.47,0.87,0.48,0.89,0.0,0.74,0.24,0.82,1.0],"TH":[0.17,0.12,0.17,0.05,0.4,0.33,0.97,0.57,0.22,0.29,1.0,0.0,0.78,0.03,0.74,0.42],"CALB1":[0.57,0.52,0.57,0.5,0.57,0.69,0.99,0.93,0.24,0.67,0.8,0.91,0.51,0.0,1.0,0.99],"RELN":[0.16,0.11,0.15,0.09,0.02,0.25,0.29,0.28,0.01,0.07,0.16,1.0,0.02,0.0,0.33,0.29],"SCN1A":[0.78,0.9,0.75,0.98,0.68,0.54,0.65,0.68,0.72,1.0,0.62,0.48,0.91,0.0,0.51,0.68]};
+var ILL=[];
+G.forEach(function(g){var v=RD[g[0]];if(!v)return;v.forEach(function(x,i){if(x!==null&&ILL.indexOf(i)<0)g[4][i]=x})});
 var NS="http://www.w3.org/2000/svg",reg=0,gsel=12,dots=[],rings=[];
 function el(t,a,p){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
 var gm=document.getElementById("gm"),X0=40,W=840,RH=34,pos={};
@@ -199,7 +204,7 @@ function draw(){
   if(gsel<0){info.textContent="Click a gene on the map.";return}
   var g=G[gsel];
   info.innerHTML="<b>"+g[0]+"</b> · "+g[1]+"<br><span style='color:var(--mute)'>Chromosome "+g[2]+", ~"+g[3].toFixed(1)+" Mb</span>";
-  R.map(function(r,j){return [r[1],g[4][j]]}).sort(function(a,b){return b[1]-a[1]}).forEach(function(r){
+  R.map(function(r,j){return [r[1]+(ILL.indexOf(j)>=0?" *":""),g[4][j]]}).sort(function(a,b){return b[1]-a[1]}).forEach(function(r){
     var d=document.createElement("div");d.innerHTML="<span class='n'>"+r[0]+"</span><span class='b'><i style='width:"+Math.round(r[1]*100)+"%'></i></span>";bars.appendChild(d)});
 }
 var CT={"c":["Exc RORB","Exc THEMIS","Exc FEZF2","Exc LINC00507","Inh PVALB","Inh SST","Inh VIP","Inh LAMP5","Inh PAX6/ADARB2","Inh other","Astrocyte","Oligodendrocyte","OPC","Microglia","Endothelial","VLMC","Pericyte"],"g":{"APOE":[0.0,0.0,0.01,0.0,0.0,0.0,0.0,0.0,0.0,0.0,3.86,0.0,0.0,0.5,0.0,0.0,0.0],"BDNF":[0.31,1.11,0.13,0.85,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"CALB1":[0.56,0.1,0.07,1.48,1.24,0.12,0.08,0.89,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"COMT":[0.74,1.06,1.57,1.05,0.36,0.84,1.05,1.11,1.74,0.18,0.31,0.43,0.12,0.0,0.0,0.24,0.21],"DRD2":[0.0,0.01,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"FOXP2":[6.65,3.05,6.77,0.17,0.16,0.25,0.15,0.15,0.12,0.26,0.19,0.15,0.11,7.92,0.2,6.87,0.58],"GAD1":[0.0,0.0,0.0,0.0,9.28,9.09,9.09,9.45,8.8,9.91,0.0,0.0,3.28,0.0,0.0,0.0,0.0],"GFAP":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,7.65,0.0,0.0,0.0,0.0,0.0,0.0],"HTT":[5.6,5.83,5.95,6.24,4.86,4.33,3.48,4.45,4.74,5.46,1.29,0.68,0.75,0.33,0.27,0.98,0.15],"MAPT":[7.5,7.54,7.39,7.55,7.24,7.38,7.5,7.28,7.5,7.43,7.18,7.19,5.7,0.01,0.01,0.27,0.28],"MBP":[3.11,1.06,2.14,2.14,2.49,1.11,1.17,3.61,0.81,2.4,0.07,11.84,2.8,1.54,0.0,0.0,0.3],"OXTR":[0.78,1.24,1.47,1.47,0.01,0.3,0.0,0.0,0.18,0.02,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"PVALB":[0.0,0.13,0.0,0.0,4.85,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"RELN":[0.89,0.37,0.66,0.38,1.02,3.04,3.41,5.49,8.28,0.38,0.62,0.55,0.44,0.49,0.47,0.89,0.47],"SCN1A":[7.89,7.42,5.94,7.47,8.65,7.68,6.98,8.65,7.45,8.17,0.0,0.0,8.59,0.0,0.0,0.0,0.0],"SLC17A7":[7.32,7.37,7.27,6.75,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"SLC6A4":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"SNAP25":[10.62,10.92,10.56,10.42,9.52,9.98,9.08,9.87,8.94,9.4,0.11,0.73,3.64,0.04,0.03,0.09,0.17],"SST":[0.0,0.0,0.0,0.0,0.72,8.46,0.0,1.65,0.7,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"TH":[0.0,0.01,0.0,0.0,0.0,0.36,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]}};
