@@ -3,12 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="version" content="0.5.3">
+<meta name="version" content="0.5.4">
 <title>Genome Map × Brain Atlas</title>
 <!--
   Genome Map x Brain Atlas  (single-file app)
-  VERSION 0.5.3 (2026-11-04)  — keep in sync with APP_VERSION in the script below
+  VERSION 0.5.4 (2026-11-04)  — keep in sync with APP_VERSION in the script below
   Changelog
+  0.5.4  Fixed darker wedge where the temporal and occipital lobe shapes overlapped
   0.5.3  Leader lines reordered so none cross; cerebellum and brainstem now tuck cleanly under an opaque cerebrum
   0.5.2  Region names no longer wrap in the profile bars; shorter brain heading; parietal label moved clear of the sulci
   0.5.1  Brain diagram flipped so the front of the brain is at the left; label column moved to the left
@@ -76,7 +77,7 @@ polygon.reg.sel{stroke:none;fill-opacity:.6}
 <div class="ver" id="ver"></div>
 </main>
 <script>
-var APP_VERSION="0.5.3",APP_DATE="2026-11-04";
+var APP_VERSION="0.5.4",APP_DATE="2026-11-04";
 document.getElementById("ver").textContent="Genome Map × Brain Atlas v"+APP_VERSION+" · "+APP_DATE;
 console.info("Genome Map × Brain Atlas v"+APP_VERSION);
 var CH=[["1",248.96],["2",242.19],["3",198.3],["4",190.21],["5",181.54],["6",170.81],["7",159.35],["8",145.14],["9",138.39],["10",133.8],["11",135.09],["12",133.28],["13",114.36],["14",107.04],["15",101.99],["16",90.34],["17",83.26],["18",80.37],["19",58.62],["20",64.44],["21",46.71],["22",50.82],["X",156.04],["Y",57.23]];
@@ -143,7 +144,7 @@ var shapes={
  fro:lb("340,0 600,0 600,330 450,300 372,232"),
  par:lb("340,0 372,232 300,222 205,215 165,0"),
  occ:lb("0,0 165,0 205,215 215,300 0,300"),
- tem:lb("372,232 470,290 470,345 200,345 205,215 300,222"),
+ tem:lb("372,232 450,300 600,330 600,345 215,345 215,300 205,215 300,222"),
  wm:["path",{d:"M120 215C115 150 170 100 270 92C360 86 440 120 470 190C478 215 470 235 440 245L380 235L300 225L205 218Z"}],
  cau:["path",{d:"M440 150C420 125 350 115 300 130C265 142 245 175 245 220L258 220C260 185 275 158 305 146C350 132 405 140 420 165C425 180 440 175 440 150Z"}],
  thal:["ellipse",{cx:305,cy:205,rx:36,ry:24}],
