@@ -3,12 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="version" content="0.5.0">
+<meta name="version" content="0.5.1">
 <title>Genome Map × Brain Atlas</title>
 <!--
   Genome Map x Brain Atlas  (single-file app)
-  VERSION 0.5.0 (2026-11-04)  — keep in sync with APP_VERSION in the script below
+  VERSION 0.5.1 (2026-11-04)  — keep in sync with APP_VERSION in the script below
   Changelog
+  0.5.1  Brain diagram flipped so the front of the brain is at the left; label column moved to the left
   0.5.0  Anatomy redraw: temporal pole, sylvian notch, rounded cerebellum, tapered brainstem, extra sulci
   0.4.1  Frontal and temporal labels moved to leader column; cerebellum and brainstem attached to cerebrum; larger labels
   0.4.0  Leader-line labels for deep structures; fixed lobe highlight; SLC17A7 preselected on load; in-file versioning
@@ -59,7 +60,7 @@ polygon.reg.sel{stroke:none;fill-opacity:.6}
 <div class="grid">
   <div class="card"><h2 id="gt">Genome map · expression in Cortex</h2><svg id="gm" viewBox="0 0 900 840"></svg></div>
   <div class="side card">
-    <h2>Brain region (lateral slice, schematic)</h2>
+    <h2>Brain region (lateral slice, front at left, schematic)</h2>
     <svg id="brain" viewBox="0 0 740 420"></svg>
     <div class="legend">low<i></i>high</div>
     <div class="info" id="info">Click a gene on the map.</div>
@@ -73,7 +74,7 @@ polygon.reg.sel{stroke:none;fill-opacity:.6}
 <div class="ver" id="ver"></div>
 </main>
 <script>
-var APP_VERSION="0.5.0",APP_DATE="2026-11-04";
+var APP_VERSION="0.5.1",APP_DATE="2026-11-04";
 document.getElementById("ver").textContent="Genome Map × Brain Atlas v"+APP_VERSION+" · "+APP_DATE;
 console.info("Genome Map × Brain Atlas v"+APP_VERSION);
 var CH=[["1",248.96],["2",242.19],["3",198.3],["4",190.21],["5",181.54],["6",170.81],["7",159.35],["8",145.14],["9",138.39],["10",133.8],["11",135.09],["12",133.28],["13",114.36],["14",107.04],["15",101.99],["16",90.34],["17",83.26],["18",80.37],["19",58.62],["20",64.44],["21",46.71],["22",50.82],["X",156.04],["Y",57.23]];
@@ -165,20 +166,21 @@ var shapes9={
  bs:["path",{d:"M285 262C285 300 290 350 288 385L318 385C318 350 322 300 330 262Z"}],
  cb:["ellipse",{cx:205,cy:330,rx:78,ry:40}]
 };
+var BG=el("g",{transform:"translate(730,0) scale(-1,1)"},bs);
 ORDER.forEach(function(k){
-  var s=shapes[k],e=el(s[0],s[1],bs),j=R.findIndex(function(r){return r[0]==k});
+  var s=shapes[k],e=el(s[0],s[1],BG),j=R.findIndex(function(r){return r[0]==k});
   e.setAttribute("class","reg");e.setAttribute("fill","#6d28d9");e.setAttribute("fill-opacity",.12);
   el("title",{},e).textContent=R[j][1];
   e.onclick=function(){reg=j;draw()};regs[k]=e;
 });
-["M340 52C350 110 365 170 372 232","M462 278C420 262 365 236 300 222C250 215 215 215 205 215","M168 62C185 120 198 170 205 215","M110 305C160 318 230 318 285 310","M105 322C160 338 230 338 280 328","M120 340C170 355 225 355 262 346","M430 312C380 304 320 296 250 290","M330 60C300 80 262 92 232 122","M470 96C432 92 400 102 374 124","M182 102C200 132 214 162 228 192"].forEach(function(d){el("path",{d:d,fill:"none",stroke:"currentColor","stroke-opacity":.3,"stroke-width":1.2,"pointer-events":"none"},bs)});
-var lab={par:[245,70],occ:[78,205],wm:[165,160],cb:[130,335],bs:[355,380]};
-[["fro",490,150,65],["cau",330,128,95],["thal",305,205,150],["put",388,205,185],["gp",358,222,215],["nac",410,242,245],["bf",372,252,275],["amy",418,274,305],["hyp",340,256,335],["hip",330,284,365],["tem",400,306,395]].forEach(function(l){
+["M340 52C350 110 365 170 372 232","M462 278C420 262 365 236 300 222C250 215 215 215 205 215","M168 62C185 120 198 170 205 215","M110 305C160 318 230 318 285 310","M105 322C160 338 230 338 280 328","M120 340C170 355 225 355 262 346","M430 312C380 304 320 296 250 290","M330 60C300 80 262 92 232 122","M470 96C432 92 400 102 374 124","M182 102C200 132 214 162 228 192"].forEach(function(d){el("path",{d:d,fill:"none",stroke:"currentColor","stroke-opacity":.3,"stroke-width":1.2,"pointer-events":"none"},BG)});
+var lab={par:[440,70],occ:[602,205],wm:[525,160],cb:[565,335],bs:[344,380]};
+[["fro",240,150,65],["cau",400,128,95],["thal",425,205,150],["put",342,205,185],["gp",372,222,215],["nac",320,242,245],["bf",358,252,275],["amy",312,274,305],["hyp",390,256,335],["hip",400,284,365],["tem",330,306,395]].forEach(function(l){
   var nm=R.find(function(r){return r[0]==l[0]})[1];
-  el("line",{x1:l[1],y1:l[2],x2:580,y2:l[3],stroke:"currentColor","stroke-opacity":.25,"stroke-width":1,"pointer-events":"none"},bs);
+  el("line",{x1:l[1],y1:l[2],x2:178,y2:l[3],stroke:"currentColor","stroke-opacity":.25,"stroke-width":1,"pointer-events":"none"},bs);
   el("circle",{cx:l[1],cy:l[2],r:2,fill:"currentColor","fill-opacity":.6,"pointer-events":"none"},bs);
-  el("text",{x:586,y:l[3]+4,class:"lbl"},bs).textContent=nm});
-for(var k in lab)el("text",{x:lab[k][0],y:lab[k][1],class:"lbl"},bs).textContent=R.find(function(r){return r[0]==k})[1];
+  el("text",{x:172,y:l[3]+4,"text-anchor":"end",class:"lbl"},bs).textContent=nm});
+for(var k in lab)el("text",{x:lab[k][0],y:lab[k][1],"text-anchor":"middle",class:"lbl"},bs).textContent=R.find(function(r){return r[0]==k})[1];
 function draw(){
   document.getElementById("gt").textContent="Genome map · expression in "+R[reg][1];
   R.forEach(function(r,j){regs[r[0]].setAttribute("class","reg"+(j==reg?" sel":""))});
