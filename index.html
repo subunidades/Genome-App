@@ -3,12 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="version" content="1.2.1">
+<meta name="version" content="1.2.2">
 <title>Genome Map × Brain Atlas</title>
 <!--
   Genome Map x Brain Atlas  (single-file app)
-  VERSION 1.2.1 (2026-11-06)  — keep in sync with APP_VERSION in the script below
+  VERSION 1.2.2 (2026-11-06)  — keep in sync with APP_VERSION in the script below
   Changelog
+  1.2.2  Legend fix: the low-to-high gradient bar no longer collapses when the region name is long (scale on its own row, caption below); teal cortex legend swatch made reliable
   1.2.1  Cell-type panel now says which brain part it comes from: heading names the gene and a teal "Cerebral cortex" pill, and the four cortical lobes get a dashed teal outline on the brain (with a legend) whenever a gene is selected
   1.2.0  Selection labelling: a "Showing expression in ..." bar above the brain, the selected region's label and leader line turn amber and bold, genome-map heading and legend name the selected region, the gene profile highlights the same region (click a row to select it), cell-type panel marked as independent of the region
   1.1.1  Brain panel: white-matter label moved to the label column, two-line parietal/occipital labels, structures colour-grouped (basal ganglia, thalamus, limbic, cerebellum/brainstem), legend wording fixed, heading says lateral view
@@ -63,7 +64,8 @@ polygon.reg.sel{stroke:none;fill-opacity:.6}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ctpill{color:#5eead4}}
 :root[data-theme="dark"] .ctpill{color:#5eead4}
 .ctleg{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--mute);margin-top:6px}
-.ctleg i{flex:none;width:22px;height:0;border-top:2px dashed #0d9488}
+.ctleg i{display:block;flex:none;width:26px;height:0;border-top:2px dashed #0d9488;align-self:center}
+.ctleg span{flex:1;min-width:0;line-height:1.4}
 .bh{font-size:12px;color:var(--mute);margin:0 0 4px}
 .bars div.selrow{background:color-mix(in srgb,#f59e0b 14%,transparent);border-radius:6px;box-shadow:inset 3px 0 0 #f59e0b;padding:1px 4px 1px 6px;margin-left:-6px;margin-right:-4px}
 .bars div.selrow .n{color:var(--sel);font-weight:700}
@@ -78,7 +80,9 @@ polygon.reg.sel{stroke:none;fill-opacity:.6}
 .info{font-size:13px;margin:10px 0 6px;min-height:40px}
 .ver{font-size:11px;color:var(--mute);margin-top:8px}
 .legend{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--mute);margin-top:6px}
-.legend i{flex:1;height:8px;border-radius:4px;background:linear-gradient(90deg,transparent,var(--acc));border:1px solid var(--line)}
+.legtxt{font-size:11px;color:var(--mute);margin-top:4px;line-height:1.4}
+.legend span{flex:none}
+.legend i{flex:1;min-width:80px;height:8px;border-radius:4px;background:linear-gradient(90deg,transparent,var(--acc));border:1px solid var(--line)}
 .q{width:100%;padding:8px 10px;margin:0 0 6px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font:inherit;font-size:14px}
 .qn{font-size:12px;color:var(--mute);min-height:18px;margin-bottom:4px}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
@@ -132,7 +136,8 @@ svg{max-width:100%}
     <h2>Brain region · lateral view, front at left</h2>
     <div class="selbar" id="selbar"></div>
     <svg id="brain" viewBox="0 0 740 420"></svg>
-    <div class="legend">Genome-map dot size and brightness: low<i></i>high expression in <b id="legreg" style="color:var(--sel)"></b></div>
+    <div class="legend"><span>low</span><i></i><span>high</span></div>
+    <div class="legtxt">Genome-map dot size and brightness show expression in <b id="legreg" style="color:var(--sel)"></b></div>
     <div class="ctleg" id="ctleg" style="display:none"><i></i><span>Dashed teal outline = cerebral cortex, where the cell-type bars below come from</span></div>
     <div class="info" id="info">Click a gene on the map.</div>
     <div class="bh" id="bh"></div>
@@ -146,7 +151,7 @@ svg{max-width:100%}
 <div class="ver" id="ver"></div>
 </main>
 <script>
-var APP_VERSION="1.2.1",APP_DATE="2026-11-06";
+var APP_VERSION="1.2.2",APP_DATE="2026-11-06";
 document.getElementById("ver").textContent="Genome Map × Brain Atlas v"+APP_VERSION+" · "+APP_DATE;
 console.info("Genome Map × Brain Atlas v"+APP_VERSION);
 var CH=[["1",248.96],["2",242.19],["3",198.3],["4",190.21],["5",181.54],["6",170.81],["7",159.35],["8",145.14],["9",138.39],["10",133.8],["11",135.09],["12",133.28],["13",114.36],["14",107.04],["15",101.99],["16",90.34],["17",83.26],["18",80.37],["19",58.62],["20",64.44],["21",46.71],["22",50.82],["X",156.04],["Y",57.23]];
