@@ -3,12 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="version" content="1.2.4">
+<meta name="version" content="1.2.5">
 <title>Genome Map × Brain Atlas</title>
 <!--
   Genome Map x Brain Atlas  (single-file app)
-  VERSION 1.2.4 (2026-11-06)  — keep in sync with APP_VERSION in the script below
+  VERSION 1.2.5 (2026-11-06)  — keep in sync with APP_VERSION in the script below
   Changelog
+  1.2.5  Cell-type panel follows the selected region: for the four cortical lobes it shows the (pooled) cortex data and names the selected lobe; for any other region it names that region and says no cell-type data exists there (Allen data covers cortex only); the teal cortex outline only shows when the data applies
   1.2.4  Removed the amber "Highlighted on brain" bar above the brain (the amber label, outline, genome-map heading and profile highlight remain)
   1.2.3  Selection ring always sits on top of its gene dot: the selected gene is brought to the front of the genome map, the ring is drawn above the dot and sized to the dot, so neighbouring dots can no longer cover it
   1.2.2  Legend fix: the low-to-high gradient bar no longer collapses when the region name is long (scale on its own row, caption below); teal cortex legend swatch made reliable
@@ -149,7 +150,7 @@ svg{max-width:100%}
 <div class="ver" id="ver"></div>
 </main>
 <script>
-var APP_VERSION="1.2.4",APP_DATE="2026-11-06";
+var APP_VERSION="1.2.5",APP_DATE="2026-11-06";
 document.getElementById("ver").textContent="Genome Map × Brain Atlas v"+APP_VERSION+" · "+APP_DATE;
 console.info("Genome Map × Brain Atlas v"+APP_VERSION);
 var CH=[["1",248.96],["2",242.19],["3",198.3],["4",190.21],["5",181.54],["6",170.81],["7",159.35],["8",145.14],["9",138.39],["10",133.8],["11",135.09],["12",133.28],["13",114.36],["14",107.04],["15",101.99],["16",90.34],["17",83.26],["18",80.37],["19",58.62],["20",64.44],["21",46.71],["22",50.82],["X",156.04],["Y",57.23]];
@@ -301,12 +302,18 @@ var CTN={"APP":[8.6,8.74,8.57,8.67,8.58,8.3,8.45,8.72,8.85,8.42,1.98,9.11,8.24,0
 for(var k in CTN)CT.g[k]=CTN[k];
 function cellsDraw(){
   var box=document.getElementById("cells"),ci=document.getElementById("cinfo"),ch=document.getElementById("ch");box.innerHTML="";
-  cortOv.style.display=gsel<0?"none":"";document.getElementById("ctleg").style.display=gsel<0?"none":"";
-  if(gsel<0){ch.textContent="Cortical cell types · real Allen data";ci.textContent="Click a gene to see which cortical cell types express it.";return}
+  var isCx=reg<4,show=gsel>=0&&isCx;
+  cortOv.style.display=show?"":"none";document.getElementById("ctleg").style.display=show?"":"none";
+  if(gsel<0){ch.textContent="Cell types · real Allen data";ci.textContent="Click a gene to see which cell types express it.";return}
+  if(!isCx){
+    ch.innerHTML="Cell types expressing <span class='selpill' id='chg'></span> in <span class='selpill' id='chr'></span>";
+    document.getElementById("chg").textContent=G[gsel][0];document.getElementById("chr").textContent=R[reg][1];
+    ci.textContent="No cell-type data for "+R[reg][1]+". The Allen cell-type data in this app covers the cerebral cortex only. Select Frontal, Parietal, Temporal or Occipital cortex on the brain to see it.";
+    return}
   ch.innerHTML="Cell types expressing <span class='selpill' id='chg'></span> in <span class='ctpill'>Cerebral cortex</span>";
   document.getElementById("chg").textContent=G[gsel][0];
   var v=CT.g[G[gsel][0]],mx=Math.max.apply(null,v);
-  ci.textContent="Brain part: cerebral cortex, with several cortical areas pooled together. It is not split by lobe and does not change with the region selected above. "+(mx<0.5?G[gsel][0]+" reads as essentially undetected in this cortex dataset. The nuclei were sorted for neurons, so glial and microglial genes can read low here.":"Bars show trimmed-mean expression, relative to the strongest cell type.");
+  ci.textContent="Selected: "+R[reg][1]+". The data is pooled across several cortical areas, so it is the same for every lobe. "+(mx<0.5?G[gsel][0]+" reads as essentially undetected in this cortex dataset. The nuclei were sorted for neurons, so glial and microglial genes can read low here.":"Bars show trimmed-mean expression, relative to the strongest cell type.");
   CT.c.map(function(n,i){return [n,v[i]]}).sort(function(a,b){return b[1]-a[1]}).forEach(function(r){
     var d=document.createElement("div");d.innerHTML="<span class='n'>"+r[0]+"</span><span class='b'><i style='width:"+(mx>0?Math.round(r[1]/mx*100):0)+"%'></i></span>";box.appendChild(d)});
 }
