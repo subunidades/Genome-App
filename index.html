@@ -3,12 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="version" content="1.2.2">
+<meta name="version" content="1.2.3">
 <title>Genome Map × Brain Atlas</title>
 <!--
   Genome Map x Brain Atlas  (single-file app)
-  VERSION 1.2.2 (2026-11-06)  — keep in sync with APP_VERSION in the script below
+  VERSION 1.2.3 (2026-11-06)  — keep in sync with APP_VERSION in the script below
   Changelog
+  1.2.3  Selection ring always sits on top of its gene dot: the selected gene is brought to the front of the genome map, the ring is drawn above the dot and sized to the dot, so neighbouring dots can no longer cover it
   1.2.2  Legend fix: the low-to-high gradient bar no longer collapses when the region name is long (scale on its own row, caption below); teal cortex legend swatch made reliable
   1.2.1  Cell-type panel now says which brain part it comes from: heading names the gene and a teal "Cerebral cortex" pill, and the four cortical lobes get a dashed teal outline on the brain (with a legend) whenever a gene is selected
   1.2.0  Selection labelling: a "Showing expression in ..." bar above the brain, the selected region's label and leader line turn amber and bold, genome-map heading and legend name the selected region, the gene profile highlights the same region (click a row to select it), cell-type panel marked as independent of the region
@@ -104,7 +105,7 @@ h2{font-size:11px;font-weight:600;letter-spacing:.09em;margin:0 0 12px}
 .chip:active{transform:scale(.97)}
 .chip:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .reg{transition:fill-opacity .2s,stroke-opacity .2s}
-.gene:hover circle:nth-child(3){filter:brightness(1.25)}
+.gene:hover circle:nth-child(2){filter:brightness(1.25)}
 .bars div{margin:5px 0;font-variant-numeric:tabular-nums}
 .bars .b{height:10px;border-radius:5px}
 .bars i{background:linear-gradient(90deg,color-mix(in srgb,var(--acc) 55%,transparent),var(--acc))}
@@ -151,7 +152,7 @@ svg{max-width:100%}
 <div class="ver" id="ver"></div>
 </main>
 <script>
-var APP_VERSION="1.2.2",APP_DATE="2026-11-06";
+var APP_VERSION="1.2.3",APP_DATE="2026-11-06";
 document.getElementById("ver").textContent="Genome Map × Brain Atlas v"+APP_VERSION+" · "+APP_DATE;
 console.info("Genome Map × Brain Atlas v"+APP_VERSION);
 var CH=[["1",248.96],["2",242.19],["3",198.3],["4",190.21],["5",181.54],["6",170.81],["7",159.35],["8",145.14],["9",138.39],["10",133.8],["11",135.09],["12",133.28],["13",114.36],["14",107.04],["15",101.99],["16",90.34],["17",83.26],["18",80.37],["19",58.62],["20",64.44],["21",46.71],["22",50.82],["X",156.04],["Y",57.23]];
@@ -215,8 +216,8 @@ Object.keys(byChr).forEach(function(c){
     if(side)end[side]=x0+w;
     var gr=el("g",{class:"gene"},gm);ggr[i]=gr;
     el("circle",{cx:x,cy:p.y+19,r:12,fill:"transparent"},gr);
-    rings[i]=el("circle",{cx:x,cy:p.y+19,r:9,fill:"none",stroke:"#f59e0b","stroke-width":2.5,opacity:0},gr);
     dots[i]=el("circle",{cx:x,cy:p.y+19,r:6,fill:DC[g[5]],stroke:DC[g[5]]},gr);
+    rings[i]=el("circle",{cx:x,cy:p.y+19,r:9,fill:"none",stroke:"#f59e0b","stroke-width":2.5,opacity:0,"pointer-events":"none"},gr);
     glabs[i]=el("text",{x:x+(anchor=="end"?-4:4),y:side=="d"?p.y+34:p.y+9,"text-anchor":anchor,class:"gl"},gr);
     glabs[i].textContent=g[0];gvis[i]=!!side;
     el("title",{},gr).textContent=g[0]+" \u00b7 "+g[1];
@@ -285,8 +286,10 @@ function draw(){
     var v=g[4][reg];glabs[i].style.display=(gvis[i]||i==gsel)?"":"none";ggr[i].style.display=(filt=="ALL"||g[5]==filt)?"":"none";
     dots[i].setAttribute("fill-opacity",(.1+.9*v).toFixed(2));
     dots[i].setAttribute("r",(3.5+4.5*v).toFixed(1));
+    rings[i].setAttribute("r",(3.5+4.5*v+4).toFixed(1));
     rings[i].setAttribute("opacity",i==gsel?1:0);
   });
+  if(gsel>=0&&ggr[gsel].parentNode.lastChild!==ggr[gsel])ggr[gsel].parentNode.appendChild(ggr[gsel]);
   var info=document.getElementById("info"),bars=document.getElementById("bars");
   bars.innerHTML="";
   var bh=document.getElementById("bh");
