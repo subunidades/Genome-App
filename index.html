@@ -3,12 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="version" content="1.1.0">
+<meta name="version" content="1.1.1">
 <title>Genome Map × Brain Atlas</title>
 <!--
   Genome Map x Brain Atlas  (single-file app)
-  VERSION 1.1.0 (2026-11-05)  — keep in sync with APP_VERSION in the script below
+  VERSION 1.1.1 (2026-11-05)  — keep in sync with APP_VERSION in the script below
   Changelog
+  1.1.1  Brain panel: white-matter label moved to the label column, two-line parietal/occipital labels, structures colour-grouped (basal ganglia, thalamus, limbic, cerebellum/brainstem), legend wording fixed, heading says lateral view
   1.1.0  Brain outlines traced from the Allen Human Reference Atlas 3D v2 (real lobes, caudate, putamen, pallidum, accumbens, thalamus, hypothalamus, amygdala, cerebellum, brainstem, basal forebrain); hippocampus and white matter still schematic
   1.0.1  Phone fix: grid columns can no longer be stretched wider than the screen by the chip row; search box no longer triggers iOS zoom
   1.0.0  Visual polish: card depth, refined type and spacing, search icon and focus states, chip hover, smoother region highlight, brighter disease colours, disease badge, collapsible data notes, phone layout
@@ -112,9 +113,9 @@ svg{max-width:100%}
   <div class="card"><h2 id="gt">Genome map · expression in Cortex</h2><input id="q" class="q" list="gl" type="search" placeholder="Search a gene or protein (e.g. SORL1, dopamine)" autocomplete="off" autocapitalize="off" spellcheck="false"><datalist id="gl"></datalist><div class="qn" id="qn"></div>
   <div class="chips" id="chips"></div><svg id="gm" viewBox="0 0 900 840"></svg></div>
   <div class="side card">
-    <h2>Brain region · schematic, front at left</h2>
+    <h2>Brain region · lateral view, front at left</h2>
     <svg id="brain" viewBox="0 0 740 420"></svg>
-    <div class="legend">low<i></i>high</div>
+    <div class="legend">Genome-map dots: low<i></i>high expression in the selected region</div>
     <div class="info" id="info">Click a gene on the map.</div>
     <div class="bars" id="bars"></div>
     <h2 style="margin-top:16px">Cortical cell types · real Allen data</h2>
@@ -126,7 +127,7 @@ svg{max-width:100%}
 <div class="ver" id="ver"></div>
 </main>
 <script>
-var APP_VERSION="1.1.0",APP_DATE="2026-11-05";
+var APP_VERSION="1.1.1",APP_DATE="2026-11-05";
 document.getElementById("ver").textContent="Genome Map × Brain Atlas v"+APP_VERSION+" · "+APP_DATE;
 console.info("Genome Map × Brain Atlas v"+APP_VERSION);
 var CH=[["1",248.96],["2",242.19],["3",198.3],["4",190.21],["5",181.54],["6",170.81],["7",159.35],["8",145.14],["9",138.39],["10",133.8],["11",135.09],["12",133.28],["13",114.36],["14",107.04],["15",101.99],["16",90.34],["17",83.26],["18",80.37],["19",58.62],["20",64.44],["21",46.71],["22",50.82],["X",156.04],["Y",57.23]];
@@ -230,17 +231,19 @@ var ORDER=["cb","bs","sil","fro","par","occ","tem","wm","cau","thal","hip","put"
 ORDER.forEach(function(k){
   if(k=="sil"){el("path",{d:OUT.paths.sil,style:"fill:var(--card);stroke:var(--fg);stroke-opacity:.35;stroke-width:1.2","pointer-events":"none"},bs);return}
   var s=shapes[k],e=el(s[0],s[1],bs),j=R.findIndex(function(r){return r[0]==k});
-  e.setAttribute("class","reg");e.setAttribute("fill","#6d28d9");e.setAttribute("fill-opacity",.12);
+  var FILL={cau:"#0ea5e9",put:"#0ea5e9",gp:"#0ea5e9",nac:"#0ea5e9",thal:"#22c55e",hip:"#ec4899",amy:"#ec4899",hyp:"#ec4899",bf:"#ec4899",cb:"#94a3b8",bs:"#94a3b8",wm:"#64748b"},LOBE={fro:1,par:1,tem:1,occ:1};
+  e.setAttribute("class","reg");e.setAttribute("fill",FILL[k]||"#8b5cf6");e.setAttribute("fill-opacity",LOBE[k]?.12:.3);
   el("title",{},e).textContent=R[j][1];
   e.onclick=function(){reg=j;draw()};regs[k]=e;
 });
-var lab={"par": [509, 133], "occ": [588, 216], "wm": [490, 168], "cb": [543, 338], "bs": [470, 413]};
-[["fro", 336, 169, 65], ["thal", 428, 223, 98], ["cau", 386, 210, 131], ["put", 391, 219, 164], ["bf", 383, 218, 197], ["gp", 399, 236, 230], ["nac", 363, 254, 263], ["hyp", 397, 261, 296], ["tem", 440, 266, 329], ["amy", 397, 279, 362], ["hip", 475, 269, 395]].forEach(function(l){
+var lab={"par": [509, 133], "occ": [588, 216], "cb": [543, 338], "bs": [470, 413]};
+[["wm", 330, 150, 62], ["fro", 336, 169, 92], ["thal", 428, 223, 122], ["cau", 386, 210, 152], ["bf", 383, 218, 182], ["put", 391, 219, 212], ["gp", 399, 236, 242], ["nac", 363, 254, 272], ["hyp", 397, 261, 302], ["amy", 397, 279, 332], ["tem", 440, 266, 362], ["hip", 475, 269, 392]].forEach(function(l){
   var nm=R.find(function(r){return r[0]==l[0]})[1];
   el("line",{x1:l[1],y1:l[2],x2:178,y2:l[3],stroke:"currentColor","stroke-opacity":.25,"stroke-width":1,"pointer-events":"none"},bs);
   el("circle",{cx:l[1],cy:l[2],r:2,fill:"currentColor","fill-opacity":.6,"pointer-events":"none"},bs);
   el("text",{x:172,y:l[3]+4,"text-anchor":"end",class:"lbl"},bs).textContent=nm});
-for(var k in lab)el("text",{x:lab[k][0],y:lab[k][1],"text-anchor":"middle",class:"lbl"},bs).textContent=R.find(function(r){return r[0]==k})[1];
+for(var k in lab){var nm2=R.find(function(r){return r[0]==k})[1],t=el("text",{x:lab[k][0],y:lab[k][1],"text-anchor":"middle",class:"lbl"},bs);
+  if(k=="occ"||k=="par"){var w=nm2.split(" ");el("tspan",{x:lab[k][0],dy:"-0.3em"},t).textContent=w[0];el("tspan",{x:lab[k][0],dy:"1.25em"},t).textContent=w[1]}else t.textContent=nm2}
 function draw(){
   document.getElementById("gt").textContent="Genome map · expression in "+R[reg][1];
   R.forEach(function(r,j){regs[r[0]].setAttribute("class","reg"+(j==reg?" sel":""))});
