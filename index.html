@@ -3,12 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="version" content="1.3.1">
+<meta name="version" content="1.3.3">
 <title>Genome Map × Brain Atlas</title>
 <!--
   Genome Map x Brain Atlas  (single-file app)
-  VERSION 1.3.1 (2026-11-08)  — keep in sync with APP_VERSION in the script below
+  VERSION 1.3.3 (2026-11-08)  — keep in sync with APP_VERSION in the script below
   Changelog
+  1.3.3  White matter message now says why there is no cell-type data (none of the Allen tissue samples used here are white matter)
+  1.3.2  Cell-type bars: each row now shows its share of the region's nuclei; cell types under 1% of nuclei are faded and listed after the common ones, and bar lengths are scaled to the strongest common cell type, so a few stray cells can no longer top the list
   1.3.1  Cell-type data rebuilt with the region matching fixed: hypothalamus now has its own data (134,471 nuclei) and thalamus no longer includes hypothalamus samples. Thalamus known-issue notes removed. White matter is the only region without cell-type data
   1.3.0  Cell-type panel now uses real Allen whole-human-brain single-nucleus data (Siletti et al. 2023) for 14 of the 16 regions, so the bars change with the region you pick (31 cell types, all 52 genes). Hypothalamus and white matter show a plain "no data" note, and thalamus carries a known-issue note (hypothalamus samples were likely grouped into it). Old cortex-only data and the dashed teal cortex outline removed
   1.2.5  Cell-type panel follows the selected region: for the four cortical lobes it shows the (pooled) cortex data and names the selected lobe; for any other region it names that region and says no cell-type data exists there (Allen data covers cortex only); the teal cortex outline only shows when the data applies
@@ -63,6 +65,8 @@ polygon.reg.sel{stroke:none;fill-opacity:.6}
 .lbl.sel{fill:var(--sel);font-weight:700}
 .selpill{display:inline-block;padding:1px 9px;border-radius:99px;border:1.5px solid #f59e0b;color:var(--sel);background:color-mix(in srgb,#f59e0b 14%,transparent);text-transform:none;letter-spacing:0;font-weight:700;font-size:12px;vertical-align:1px}
 #cells .n{width:150px;font-size:11.5px}
+#cells .sh{flex:none;width:38px;text-align:right;font-size:11px;color:var(--mute);font-variant-numeric:tabular-nums}
+#cells div.dim{opacity:.5}
 .bh{font-size:12px;color:var(--mute);margin:0 0 4px}
 .bars div.selrow{background:color-mix(in srgb,#f59e0b 14%,transparent);border-radius:6px;box-shadow:inset 3px 0 0 #f59e0b;padding:1px 4px 1px 6px;margin-left:-6px;margin-right:-4px}
 .bars div.selrow .n{color:var(--sel);font-weight:700}
@@ -142,11 +146,11 @@ svg{max-width:100%}
     <div class="bars" id="cells"></div>
   </div>
 </div>
-<details class="warn"><summary>About the data and its limits</summary><p>Regional expression is real Allen Human Brain Atlas microarray data (six donors averaged, each gene scaled 0 to 1 across regions). The brain outlines are traced from the Allen Human Reference Atlas 3D v2 (MNI152 template, gyral annotation) as a composite lateral view of the left hemisphere: the cortical lobes show the real lateral surface and the deep structures are projected onto it. The hippocampus and white-matter shapes are schematic. Chromosome sizes (GRCh38) and gene positions are approximate. The cell-type bars are real: Allen whole-human-brain single-nucleus data (Siletti et al. 2023, about 3.4 million nuclei), averaged per cell type (31 Allen superclusters) within each region. Allen names its tissue samples by dissection, and these are mapped onto the 16 regions by name, so some assignments are approximate: for example the entorhinal areas count toward hippocampus, and cortical areas are assigned to the four lobes. White matter has no cell-type data. Cell-type data licence: CC BY-NC 4.0. Data: Allen Institute for Brain Science (api.brain-map.org, brain-map.org).</p></details>
+<details class="warn"><summary>About the data and its limits</summary><p>Regional expression is real Allen Human Brain Atlas microarray data (six donors averaged, each gene scaled 0 to 1 across regions). The brain outlines are traced from the Allen Human Reference Atlas 3D v2 (MNI152 template, gyral annotation) as a composite lateral view of the left hemisphere: the cortical lobes show the real lateral surface and the deep structures are projected onto it. The hippocampus and white-matter shapes are schematic. Chromosome sizes (GRCh38) and gene positions are approximate. The cell-type bars are real: Allen whole-human-brain single-nucleus data (Siletti et al. 2023, about 3.4 million nuclei), averaged per cell type (31 Allen superclusters) within each region. Allen names its tissue samples by dissection, and these are mapped onto the 16 regions by name, so some assignments are approximate: for example the entorhinal areas count toward hippocampus, and cortical areas are assigned to the four lobes. White matter has no cell-type data because none of the Allen tissue samples used here are white matter. Cell-type data licence: CC BY-NC 4.0. Data: Allen Institute for Brain Science (api.brain-map.org, brain-map.org).</p></details>
 <div class="ver" id="ver"></div>
 </main>
 <script>
-var APP_VERSION="1.3.1",APP_DATE="2026-11-08";
+var APP_VERSION="1.3.3",APP_DATE="2026-11-08";
 document.getElementById("ver").textContent="Genome Map × Brain Atlas v"+APP_VERSION+" · "+APP_DATE;
 console.info("Genome Map × Brain Atlas v"+APP_VERSION);
 var CH=[["1",248.96],["2",242.19],["3",198.3],["4",190.21],["5",181.54],["6",170.81],["7",159.35],["8",145.14],["9",138.39],["10",133.8],["11",135.09],["12",133.28],["13",114.36],["14",107.04],["15",101.99],["16",90.34],["17",83.26],["18",80.37],["19",58.62],["20",64.44],["21",46.71],["22",50.82],["X",156.04],["Y",57.23]];
@@ -299,19 +303,23 @@ function cellsDraw(){
   var gname=G[gsel][0],rname=R[reg][1];
   document.getElementById("chg").textContent=gname;document.getElementById("chr").textContent=rname;
   var rd=CTR.regions[R[reg][0]];
-  if(!rd){ci.textContent="No cell-type data for "+rname+" in this dataset.";return}
+  if(!rd){ci.textContent=R[reg][0]=="wm"?"No cell-type data for White matter: none of the Allen tissue samples used here are white matter, so there is nothing to average for it.":"No cell-type data for "+rname+" in this dataset.";return}
   var v=rd.g[gname];
   if(!v){ci.textContent="No cell-type data for "+gname+" in "+rname+".";return}
-  var rows=[];CTR.classes.forEach(function(n,i){if(v[i]!==null)rows.push([n,v[i],rd.n[n]])});
-  rows.sort(function(a,b){return b[1]-a[1]});
-  var mx=rows.length?rows[0][1]:0,shown=rows.slice(0,15);
-  ci.textContent="From "+rd.cells.toLocaleString("en-US")+" nuclei in "+rname+". Bars show mean log2 expression, relative to the strongest cell type. "
-    +(rows.length>shown.length?"Top "+shown.length+" of "+rows.length+" cell types shown. ":"")
+  var rows=[];CTR.classes.forEach(function(n,i){if(v[i]!==null)rows.push([n,v[i],rd.n[n],rd.n[n]/rd.cells])});
+  var byVal=function(a,b){return b[1]-a[1]};
+  var main=rows.filter(function(r){return r[3]>=0.01}).sort(byVal),rare=rows.filter(function(r){return r[3]<0.01}).sort(byVal);
+  var fallback=false;if(!main.length){main=rare;rare=[];fallback=true}
+  var all=main.concat(rare),shown=all.slice(0,15),mx=main.length?main[0][1]:0;
+  ci.textContent="From "+rd.cells.toLocaleString("en-US")+" nuclei in "+rname+". Bars show mean log2 expression, relative to the strongest cell type that makes up at least 1% of the nuclei. The number on the right is each cell type\u2019s share of the nuclei. Faded rows are rarer than 1% and are listed last; they can come from only a few cells. "
+    +(all.length>shown.length?"Top "+shown.length+" of "+all.length+" cell types shown. ":"")
     +(mx<0.5?gname+" reads as essentially undetected here.":"");
+  var pct=function(x){return x>=0.095?Math.round(x*100)+"%":x>=0.001?(x*100).toFixed(1)+"%":"<0.1%"};
   shown.forEach(function(r){
     var d=document.createElement("div");d.title=r[2].toLocaleString("en-US")+" nuclei";
-    d.innerHTML="<span class='n'></span><span class='b'><i style='width:"+(mx>0?Math.round(r[1]/mx*100):0)+"%'></i></span>";
-    d.firstChild.textContent=r[0];box.appendChild(d)});
+    if(r[3]<0.01&&!fallback)d.className="dim";
+    d.innerHTML="<span class='n'></span><span class='b'><i style='width:"+(mx>0?Math.min(100,Math.round(r[1]/mx*100)):0)+"%'></i></span><span class='sh'></span>";
+    d.firstChild.textContent=r[0];d.lastChild.textContent=pct(r[3]);box.appendChild(d)});
 }
 var _d=draw;draw=function(){_d();cellsDraw()};
 draw();
